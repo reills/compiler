@@ -6,6 +6,7 @@ import com.classhole.compiler.lexer.operators.*;
 import com.classhole.compiler.lexer.primitives.*;
 import com.classhole.compiler.lexer.delimiters.*;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 public class Tokenizer {
@@ -15,14 +16,15 @@ public class Tokenizer {
   private int column;
 
   public Tokenizer(String input) {
-    // Append EOF marker for convenience
-    this.input = input + " EOF";
+    this.input = input;
     this.position = 0;
     this.line = 1;
     this.column = 1;
   }
 
-
+  public int getPosition() {
+    return position;
+  }
   public int getLine() {
     return line;
   }
@@ -41,7 +43,8 @@ public class Tokenizer {
   }
 
   public void skipWhitespace() {
-    while (position < input.length() && Character.isWhitespace(input.charAt(position))) {
+    while (position < input.length()
+        && Character.isWhitespace(input.charAt(position))) {
       if (input.charAt(position) == '\n') {
         line++;
         column = 1;
@@ -305,14 +308,6 @@ public class Tokenizer {
   // --------------------------------------------------------------------
 
   private Optional<Token> tryMatchDelimiter() {
-    // Special-case EOF marker
-    if (matchesExact("EOF")) {
-      int tokenLine = line;
-      int tokenColumn = column;
-      position += 3; // length of "EOF"
-      column += 3;
-      return Optional.of(new EndOfFileToken(tokenLine, tokenColumn));
-    }
 
     // Single-character delimiters
     String delimiters = "()[]{};,.";
@@ -359,5 +354,16 @@ public class Tokenizer {
       return !Character.isLetterOrDigit(nextChar);
     }
     return true;
+  }
+
+
+  public ArrayList<Token> tokenize(){
+    final ArrayList<Token> tokens = new ArrayList<>();
+    skipWhitespace();
+    while (position < input.length()) {
+      Optional<Token> token = nextToken();
+      token.ifPresent(tokens::add);
+    }
+    return tokens;
   }
 }

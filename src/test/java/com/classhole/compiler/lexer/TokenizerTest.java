@@ -1,6 +1,32 @@
 package com.classhole.compiler.lexer;
 
+import com.classhole.compiler.lexer.delimiters.DotToken;
+import com.classhole.compiler.lexer.keywords.BreakToken;
+import com.classhole.compiler.lexer.keywords.ClassToken;
+import com.classhole.compiler.lexer.keywords.ElseToken;
+import com.classhole.compiler.lexer.keywords.ExtendsToken;
+import com.classhole.compiler.lexer.keywords.IfToken;
+import com.classhole.compiler.lexer.keywords.InitToken;
+import com.classhole.compiler.lexer.keywords.MethodToken;
+import com.classhole.compiler.lexer.keywords.NewToken;
+import com.classhole.compiler.lexer.keywords.PrintlnToken;
+import com.classhole.compiler.lexer.keywords.ReturnToken;
+import com.classhole.compiler.lexer.keywords.SuperToken;
+import com.classhole.compiler.lexer.keywords.ThisToken;
+import com.classhole.compiler.lexer.keywords.WhileToken;
+import com.classhole.compiler.lexer.literals.StringLiteralToken;
+import com.classhole.compiler.lexer.operators.EqualsToken;
+import com.classhole.compiler.lexer.operators.GreaterEqualToken;
+import com.classhole.compiler.lexer.operators.GreaterThanToken;
+import com.classhole.compiler.lexer.operators.LessEqualToken;
+import com.classhole.compiler.lexer.operators.LessThanToken;
+import com.classhole.compiler.lexer.operators.NotEqualsToken;
+import com.classhole.compiler.lexer.primitives.BooleanTypeToken;
+import com.classhole.compiler.lexer.primitives.IntTypeToken;
+import com.classhole.compiler.lexer.primitives.VoidTypeToken;
+import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TokenizerTest {
@@ -8,6 +34,23 @@ public class TokenizerTest {
   private void assertToken(Token token, String expectedLexeme) {
     assertNotNull(token, "Expected token but found null");
     assertEquals(expectedLexeme, token.getLexeme(), "Unexpected lexeme");
+  }
+
+  @Test
+  public void testSkippingWhitespace() {
+    Tokenizer tokenizer = new Tokenizer("     ");
+    // No tokens should be found, and position should move after skipping whitespace
+    tokenizer.skipWhitespace();
+    assertEquals(5, tokenizer.getPosition());
+    // Next token should be empty
+    assertTrue(tokenizer.nextToken().isEmpty());
+  }
+
+  @Test
+  public void testSkippingWhitespaceAndCharacter() {
+    Tokenizer tokenizer = new Tokenizer("     class");
+    tokenizer.skipWhitespace();
+    assertEquals(5, tokenizer.getPosition());
   }
 
   @Test
@@ -64,7 +107,7 @@ public class TokenizerTest {
 
   @Test
   public void testMultipleTokens() {
-    Tokenizer tokenizer = new Tokenizer("class Example { Int x = 10; }");
+    Tokenizer tokenizer = new Tokenizer("class     Example \n { Int x = 10; }");
     assertToken(tokenizer.nextToken().orElseThrow(), "class");
     assertToken(tokenizer.nextToken().orElseThrow(), "Example");
     assertToken(tokenizer.nextToken().orElseThrow(), "{");
@@ -82,4 +125,142 @@ public class TokenizerTest {
     Exception exception = assertThrows(IllegalStateException.class, tokenizer::nextToken);
     assertEquals("Unexpected character at line 1: @", exception.getMessage());
   }
+
+  /**
+   * 1) Test all remaining keywords to cover the entire switch in createKeywordToken.
+   */
+  @Test
+  public void testAllKeywords() {
+    String code = "class extends method init return if else while break new super this println";
+    Tokenizer tokenizer = new Tokenizer(code);
+
+    // "class"
+    assertInstanceOf(ClassToken.class, tokenizer.nextToken().orElseThrow());
+    // "extends"
+    assertInstanceOf(ExtendsToken.class, tokenizer.nextToken().orElseThrow());
+    // "method"
+    assertInstanceOf(MethodToken.class, tokenizer.nextToken().orElseThrow());
+    // "init"
+    assertInstanceOf(InitToken.class, tokenizer.nextToken().orElseThrow());
+    // "return"
+    assertInstanceOf(ReturnToken.class, tokenizer.nextToken().orElseThrow());
+    // "if"
+    assertInstanceOf(IfToken.class, tokenizer.nextToken().orElseThrow());
+    // "else"
+    assertInstanceOf(ElseToken.class, tokenizer.nextToken().orElseThrow());
+    // "while"
+    assertInstanceOf(WhileToken.class, tokenizer.nextToken().orElseThrow());
+    // "break"
+    assertInstanceOf(BreakToken.class, tokenizer.nextToken().orElseThrow());
+    // "new"
+    assertInstanceOf(NewToken.class, tokenizer.nextToken().orElseThrow());
+    // "super"
+    assertInstanceOf(SuperToken.class, tokenizer.nextToken().orElseThrow());
+    // "this"
+    assertInstanceOf(ThisToken.class, tokenizer.nextToken().orElseThrow());
+    // "println"
+    assertInstanceOf(PrintlnToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  /**
+   * 2) Test all primitives: Int, Boolean, Void.
+   */
+  @Test
+  public void testPrimitiveTokens() {
+    Tokenizer tokenizer = new Tokenizer("Int Boolean Void");
+    // Int
+    assertInstanceOf(IntTypeToken.class, tokenizer.nextToken().orElseThrow());
+    // Boolean
+    assertInstanceOf(BooleanTypeToken.class, tokenizer.nextToken().orElseThrow());
+    // Void
+    assertInstanceOf(VoidTypeToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  /**
+   * 3) Test two-character operators and leftover comparison ops: ==, !=, <=, >=, <, >.
+   */
+  @Test
+  public void testDoubleCharOperators() {
+    Tokenizer tokenizer = new Tokenizer("== != <= >= < >");
+    assertInstanceOf(EqualsToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(NotEqualsToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(LessEqualToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(GreaterEqualToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(LessThanToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(GreaterThanToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  /**
+   * 4) Test the dot delimiter ('.') which wasn't included in the original testDelimiters.
+   */
+  @Test
+  public void testDotDelimiter() {
+    Tokenizer tokenizer = new Tokenizer(".");
+    Token token = tokenizer.nextToken().orElseThrow();
+    // Ensure it's recognized as a DotToken
+    assertEquals(".", token.getLexeme());
+    assertInstanceOf(DotToken.class, token);
+  }
+
+  /**
+   * 5) Test unknown delimiter (e.g. '[') to cover the default branch in createDelimiterToken().
+   */
+  @Test
+  public void testUnknownDelimiter() {
+    Tokenizer tokenizer = new Tokenizer("[");
+    Exception exception = assertThrows(IllegalArgumentException.class, tokenizer::nextToken);
+    assertEquals("Unknown delimiter: [", exception.getMessage());
+  }
+
+  /**
+   * 6) Test a multi-line string to ensure line increments inside the string literal are covered.
+   */
+  @Test
+  public void testMultiLineStringLiteral() {
+    Tokenizer tokenizer = new Tokenizer("\"Hello\nWorld\"");
+    Token token = tokenizer.nextToken().orElseThrow();
+    assertInstanceOf(StringLiteralToken.class, token);
+    assertEquals("Hello\nWorld", token.getLexeme());
+  }
+
+  /**
+   * 7) Test an unterminated string to cover the throw new IllegalStateException("Unterminated string literal").
+   */
+  @Test
+  public void testUnterminatedString() {
+    Tokenizer tokenizer = new Tokenizer("\"Hello");
+    Exception exception = assertThrows(IllegalStateException.class, tokenizer::nextToken);
+    assertEquals("Unterminated string literal at line 1", exception.getMessage());
+  }
+
+  @Test
+  public void testTokenizerMethod() {
+    // Given some sample input that should produce multiple tokens
+    String input = "class Example { Int x = 10; }";
+    Tokenizer tokenizer = new Tokenizer(input);
+    ArrayList<Token> tokens = tokenizer.tokenize();
+
+    String[] expectedLexemes = {
+        "class",  // keyword
+        "Example", // identifier
+        "{",      // delimiter
+        "Int",    // primitive
+        "x",      // identifier
+        "=",      // operator
+        "10",     // integer literal
+        ";",      // delimiter
+        "}"       // delimiter
+    };
+
+    // check the number of tokens
+    assertEquals(expectedLexemes.length, tokens.size(),
+        "Mismatch in the number of tokens returned by tokenize()");
+
+    // check each token is correctly mapped
+    for (int i = 0; i < expectedLexemes.length; i++) {
+      assertEquals(expectedLexemes[i], tokens.get(i).getLexeme(),
+          "Unexpected lexeme at token index " + i);
+    }
+  }
+
 }
