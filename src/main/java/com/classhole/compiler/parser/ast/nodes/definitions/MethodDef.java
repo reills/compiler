@@ -5,7 +5,7 @@ import com.classhole.compiler.parser.ast.nodes.statements.VarDecStmt;
 import java.util.List;
 
 public record MethodDef(
-    String methodName,
+    String name,
     List<VarDecStmt> parameters,
     String returnType,
     List<Stmt> body

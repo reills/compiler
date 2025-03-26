@@ -2,6 +2,6 @@ package com.classhole.compiler.parser.ast.nodes.statements;
 
 import com.classhole.compiler.parser.ast.Exp;
 import com.classhole.compiler.parser.ast.Stmt;
-import java.util.Optional;
+import java.util.List;
 
-public record ReturnStmt(Optional<Exp> expression) implements Stmt {}
+public record SuperStmt(List<Exp> args) implements Stmt {}
