@@ -193,6 +193,8 @@ public class Tokenizer {
 
     // 3.3 Strings
     if (currentChar() == '\"') {
+      int stringStartLine = startLine;
+      int stringStartColumn = startColumn;
 
       advance(); // skip opening quote
       int start = position;
@@ -204,7 +206,7 @@ public class Tokenizer {
 
       if (position >= input.length()) {
         // Reached EOF without closing quote
-        throw new IllegalStateException("Unterminated string literal at line " + startLine);
+        throw new IllegalStateException("Unterminated string literal at line " + stringStartLine);
       }
 
       // Extract the string between the quotes
@@ -213,7 +215,7 @@ public class Tokenizer {
       // Skip the closing quote
       advance();
 
-      return Optional.of(new StringLiteralToken(value, startLine, startColumn));
+      return Optional.of(new StringLiteralToken(value, stringStartLine, stringStartColumn));
     }
 
     return Optional.empty();
