@@ -1,29 +1,10 @@
 package com.classhole.compiler.lexer;
 
 import com.classhole.compiler.lexer.delimiters.DotToken;
-import com.classhole.compiler.lexer.keywords.BreakToken;
-import com.classhole.compiler.lexer.keywords.ClassToken;
-import com.classhole.compiler.lexer.keywords.ElseToken;
-import com.classhole.compiler.lexer.keywords.ExtendsToken;
-import com.classhole.compiler.lexer.keywords.IfToken;
-import com.classhole.compiler.lexer.keywords.InitToken;
-import com.classhole.compiler.lexer.keywords.MethodToken;
-import com.classhole.compiler.lexer.keywords.NewToken;
-import com.classhole.compiler.lexer.keywords.PrintlnToken;
-import com.classhole.compiler.lexer.keywords.ReturnToken;
-import com.classhole.compiler.lexer.keywords.SuperToken;
-import com.classhole.compiler.lexer.keywords.ThisToken;
-import com.classhole.compiler.lexer.keywords.WhileToken;
+import com.classhole.compiler.lexer.keywords.*;
 import com.classhole.compiler.lexer.literals.StringLiteralToken;
-import com.classhole.compiler.lexer.operators.EqualsToken;
-import com.classhole.compiler.lexer.operators.GreaterEqualToken;
-import com.classhole.compiler.lexer.operators.GreaterThanToken;
-import com.classhole.compiler.lexer.operators.LessEqualToken;
-import com.classhole.compiler.lexer.operators.LessThanToken;
-import com.classhole.compiler.lexer.operators.NotEqualsToken;
-import com.classhole.compiler.lexer.primitives.BooleanTypeToken;
-import com.classhole.compiler.lexer.primitives.IntTypeToken;
-import com.classhole.compiler.lexer.primitives.VoidTypeToken;
+import com.classhole.compiler.lexer.operators.*;
+import com.classhole.compiler.lexer.primitives*;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
@@ -261,6 +242,29 @@ public class TokenizerTest {
       assertEquals(expectedLexemes[i], tokens.get(i).getLexeme(),
           "Unexpected lexeme at token index " + i);
     }
+  }
+  @Test
+  public void testKeywordFollowedByIdentifier() {
+    Tokenizer tokenizer = new Tokenizer("classy");
+    Token token = tokenizer.nextToken().orElseThrow();
+    assertInstanceOf(IdentifierToken.class, token);
+    assertEquals("classy", token.getLexeme());
+  }
+  
+  @Test
+  public void testEmptyStringLiteral() {
+    Tokenizer tokenizer = new Tokenizer("""");
+    Token token = tokenizer.nextToken().orElseThrow();
+    assertEquals("", token.getLexeme());
+    assertInstanceOf(StringLiteralToken.class, token);
+  }
+  
+  @Test
+  public void testLargeInteger() {
+    Tokenizer tokenizer = new Tokenizer("12345678901234567890");
+    Token token = tokenizer.nextToken().orElseThrow();
+    assertEquals("12345678901234567890", token.getLexeme());
+    // Will throw if parseInt fails—good stress test
   }
 
 }
