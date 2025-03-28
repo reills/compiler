@@ -8,6 +8,10 @@ import com.classhole.compiler.lexer.primitives.*;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TokenizerTest {
@@ -185,7 +189,7 @@ public class TokenizerTest {
 
 
   /**
-   * 6) Test a multi-line string to ensure line increments inside the string literal are covered.
+   * 5) Test a multi-line string to ensure line increments inside the string literal are covered.
    */
   @Test
   public void testMultiLineStringLiteral() {
@@ -196,7 +200,7 @@ public class TokenizerTest {
   }
 
   /**
-   * 7) Test an unterminated string to cover the throw new IllegalStateException("Unterminated string literal").
+   * 6) Test an unterminated string to cover the throw new IllegalStateException("Unterminated string literal").
    */
   @Test
   public void testUnterminatedString() {
@@ -258,5 +262,87 @@ public class TokenizerTest {
     });
     // Will throw if parseInt fails—good stress test
     // since int is too big
+  }
+
+  @Test
+  public void testLineAndColumnTracking() {
+    try {
+      String input = Files.readString(Path.of("test_input.txt"));
+      Tokenizer tokenizer = new Tokenizer(input);
+      assertAll("Line and Column Tracking",
+              () -> {
+                assertEquals(1, tokenizer.getLine());
+                assertEquals(1, tokenizer.getColumn());
+                Token token1 = tokenizer.nextToken().orElseThrow();  // class
+              },
+              () -> {
+                assertEquals(1, tokenizer.getLine());
+                assertEquals(7, tokenizer.getColumn());
+                Token token2 = tokenizer.nextToken().orElseThrow();  // Example
+              },
+              () -> {
+                assertEquals(1, tokenizer.getLine());
+                assertEquals(15, tokenizer.getColumn());
+                Token token3 = tokenizer.nextToken().orElseThrow();  // {
+              },
+              () -> {
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(3, tokenizer.getColumn());
+                Token token4 = tokenizer.nextToken().orElseThrow();  // Int
+              },
+              () -> {
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(7, tokenizer.getColumn());
+                Token token5 = tokenizer.nextToken().orElseThrow();  // x
+              },
+              () -> {
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(9, tokenizer.getColumn());
+                Token token6 = tokenizer.nextToken().orElseThrow();  // =
+              },
+              () -> {
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(11, tokenizer.getColumn());
+                Token token7 = tokenizer.nextToken().orElseThrow();  // 10
+              },
+              () -> {
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(13, tokenizer.getColumn());
+                Token token8 = tokenizer.nextToken().orElseThrow();  // ;
+              },
+              () -> {
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(3, tokenizer.getColumn());
+                Token token9 = tokenizer.nextToken().orElseThrow();  // println
+              },
+              () -> {
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(11, tokenizer.getColumn());
+                Token token10 = tokenizer.nextToken().orElseThrow();  // (
+              },
+              () -> {
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(12, tokenizer.getColumn());
+                Token token11 = tokenizer.nextToken().orElseThrow();  // "Hello, world"
+              },
+              () -> {
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(26, tokenizer.getColumn());
+                Token token12 = tokenizer.nextToken().orElseThrow();  // )
+              },
+              () -> {
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(27, tokenizer.getColumn());
+                Token token13 = tokenizer.nextToken().orElseThrow();  // ;
+              },
+              () -> {
+                assertEquals(4, tokenizer.getLine());
+                assertEquals(1, tokenizer.getColumn());
+                Token token14 = tokenizer.nextToken().orElseThrow();  // }
+              }
+      );
+    } catch (Exception e) {
+      System.out.println("io error");
+    }
   }
 }
