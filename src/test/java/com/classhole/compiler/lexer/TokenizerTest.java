@@ -273,72 +273,71 @@ public class TokenizerTest {
               () -> {
                 assertEquals(1, tokenizer.getLine());
                 assertEquals(1, tokenizer.getColumn());
-                Token token1 = tokenizer.nextToken().orElseThrow();  // class
               },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // class
                 assertEquals(1, tokenizer.getLine());
                 assertEquals(7, tokenizer.getColumn());
-                Token token2 = tokenizer.nextToken().orElseThrow();  // Example
               },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // Example
                 assertEquals(1, tokenizer.getLine());
                 assertEquals(15, tokenizer.getColumn());
-                Token token3 = tokenizer.nextToken().orElseThrow();  // {
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // {
                 assertEquals(2, tokenizer.getLine());
                 assertEquals(3, tokenizer.getColumn());
-                Token token4 = tokenizer.nextToken().orElseThrow();  // Int
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // Int
                 assertEquals(2, tokenizer.getLine());
                 assertEquals(7, tokenizer.getColumn());
-                Token token5 = tokenizer.nextToken().orElseThrow();  // x
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // x
                 assertEquals(2, tokenizer.getLine());
                 assertEquals(9, tokenizer.getColumn());
-                Token token6 = tokenizer.nextToken().orElseThrow();  // =
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // =
                 assertEquals(2, tokenizer.getLine());
                 assertEquals(11, tokenizer.getColumn());
-                Token token7 = tokenizer.nextToken().orElseThrow();  // 10
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // 10
                 assertEquals(2, tokenizer.getLine());
                 assertEquals(13, tokenizer.getColumn());
-                Token token8 = tokenizer.nextToken().orElseThrow();  // ;
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // ;
                 assertEquals(3, tokenizer.getLine());
                 assertEquals(3, tokenizer.getColumn());
-                Token token9 = tokenizer.nextToken().orElseThrow();  // println
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // println
                 assertEquals(3, tokenizer.getLine());
                 assertEquals(11, tokenizer.getColumn());
-                Token token10 = tokenizer.nextToken().orElseThrow();  // (
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // (
                 assertEquals(3, tokenizer.getLine());
                 assertEquals(12, tokenizer.getColumn());
-                Token token11 = tokenizer.nextToken().orElseThrow();  // "Hello, world"
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // "Hello, world"
                 assertEquals(3, tokenizer.getLine());
                 assertEquals(26, tokenizer.getColumn());
-                Token token12 = tokenizer.nextToken().orElseThrow();  // )
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // )
                 assertEquals(3, tokenizer.getLine());
                 assertEquals(27, tokenizer.getColumn());
-                Token token13 = tokenizer.nextToken().orElseThrow();  // ;
-              },
+                },
               () -> {
+                tokenizer.nextToken().orElseThrow();  // ;
                 assertEquals(4, tokenizer.getLine());
                 assertEquals(1, tokenizer.getColumn());
-                Token token14 = tokenizer.nextToken().orElseThrow();  // }
               }
       );
     } catch (Exception e) {
