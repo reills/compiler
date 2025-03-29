@@ -2,9 +2,9 @@ package com.classhole.compiler.lexer;
 
 import com.classhole.compiler.lexer.delimiters.DotToken;
 import com.classhole.compiler.lexer.keywords.*;
-import com.classhole.compiler.lexer.literals.StringLiteralToken;
+import com.classhole.compiler.lexer.literals.*;
 import com.classhole.compiler.lexer.operators.*;
-import com.classhole.compiler.lexer.primitives*;
+import com.classhole.compiler.lexer.primitives.*;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 
@@ -244,7 +244,7 @@ public class TokenizerTest {
   
   @Test
   public void testEmptyStringLiteral() {
-    Tokenizer tokenizer = new Tokenizer("""");
+    Tokenizer tokenizer = new Tokenizer("\"\"");
     Token token = tokenizer.nextToken().orElseThrow();
     assertEquals("", token.getLexeme());
     assertInstanceOf(StringLiteralToken.class, token);
@@ -252,10 +252,11 @@ public class TokenizerTest {
   
   @Test
   public void testLargeInteger() {
-    Tokenizer tokenizer = new Tokenizer("12345678901234567890");
-    Token token = tokenizer.nextToken().orElseThrow();
-    assertEquals("12345678901234567890", token.getLexeme());
+    assertThrows(IllegalArgumentException.class, () -> {
+      Tokenizer tokenizer = new Tokenizer("12345678901234567890");
+      tokenizer.nextToken().orElseThrow();
+    });
     // Will throw if parseInt fails—good stress test
+    // since int is too big
   }
-
 }

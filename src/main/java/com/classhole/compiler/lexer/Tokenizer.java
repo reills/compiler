@@ -167,8 +167,14 @@ public class Tokenizer {
       while (position < input.length() && Character.isDigit(input.charAt(position))) {
         advance();
       }
-      int lexeme = Integer.parseInt(input.substring(start, position));
-      return Optional.of(new IntegerLiteralToken(lexeme, startLine, startColumn));
+
+      String lexeme = input.substring(start, position);
+      try {
+        int value = Integer.parseInt(lexeme);  // actually parse it since integer overflow
+        return Optional.of(new IntegerLiteralToken(value, startLine, startColumn));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Integer literal too large at line " + startLine + ", column " + startColumn + ": " + lexeme);
+      }
     }
 
     // 3.2 Booleans
@@ -187,8 +193,6 @@ public class Tokenizer {
 
     // 3.3 Strings
     if (currentChar() == '\"') {
-      int stringStartLine = startLine;
-      int stringStartColumn = startColumn;
 
       advance(); // skip opening quote
       int start = position;
@@ -200,7 +204,7 @@ public class Tokenizer {
 
       if (position >= input.length()) {
         // Reached EOF without closing quote
-        throw new IllegalStateException("Unterminated string literal at line " + stringStartLine);
+        throw new IllegalStateException("Unterminated string literal at line " + startLine);
       }
 
       // Extract the string between the quotes
@@ -209,7 +213,7 @@ public class Tokenizer {
       // Skip the closing quote
       advance();
 
-      return Optional.of(new StringLiteralToken(value, stringStartLine, stringStartColumn));
+      return Optional.of(new StringLiteralToken(value, startLine, startColumn));
     }
 
     return Optional.empty();
