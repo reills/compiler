@@ -253,7 +253,7 @@ public class TokenizerTest {
     assertEquals("", token.getLexeme());
     assertInstanceOf(StringLiteralToken.class, token);
   }
-  
+
   @Test
   public void testLargeInteger() {
     assertThrows(IllegalArgumentException.class, () -> {
