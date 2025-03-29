@@ -25,6 +25,7 @@ public class Tokenizer {
   public int getPosition() {
     return position;
   }
+
   public int getLine() {
     return line;
   }
@@ -38,20 +39,19 @@ public class Tokenizer {
   }
 
   private void advance() {
+    if (currentChar() == '\n') {
+      System.out.println("found a newline");
+      line++;
+      column = 1;  // Reset column on newline
+    } else {
+      column++;
+    }
     position++;
-    column++;
   }
 
   public void skipWhitespace() {
-    while (position < input.length()
-        && Character.isWhitespace(input.charAt(position))) {
-      if (input.charAt(position) == '\n') {
-        line++;
-        column = 1;
-      } else {
-        column++;
-      }
-      position++;
+    while (position < input.length() && Character.isWhitespace(input.charAt(position))) {
+      advance();
     }
   }
 
@@ -62,15 +62,18 @@ public class Tokenizer {
       return Optional.empty();
     }
 
+    // Save the starting position before matching any token
+    int startLine = line;
+    int startColumn = column;
     char current = input.charAt(position);
 
     // Try to match in a particular order
-    Optional<Token> token = tryMatchKeyword()
-        .or(this::tryMatchPrimitive)
-        .or(this::tryMatchLiteral)
-        .or(this::tryMatchIdentifier)
-        .or(this::tryMatchOperator)
-        .or(this::tryMatchDelimiter);
+    Optional<Token> token = tryMatchKeyword(startLine, startColumn)
+            .or(() -> tryMatchPrimitive(startLine, startColumn))
+            .or(() -> tryMatchLiteral(startLine, startColumn))
+            .or(() -> tryMatchIdentifier(startLine, startColumn))
+            .or(() -> tryMatchOperator(startLine, startColumn))
+            .or(() -> tryMatchDelimiter(startLine, startColumn));
 
     if (token.isPresent()) {
       return token;
@@ -84,23 +87,21 @@ public class Tokenizer {
   //  1) KEYWORDS
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchKeyword() {
+  private Optional<Token> tryMatchKeyword(int startLine, int startColumn) {
     String keyword = matchKeyword();
     if (keyword != null) {
-      int tokenLine = line;
-      int tokenColumn = column;
-      // consume the keyword
+      Token token = createKeywordToken(keyword, startLine, startColumn);
       position += keyword.length();
       column += keyword.length();
-      return Optional.of(createKeywordToken(keyword, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
     return Optional.empty();
   }
 
   private String matchKeyword() {
     String[] keywords = {
-        "class", "extends", "method", "init", "return", "if", "else",
-        "while", "break", "new", "super", "this", "println"
+            "class", "extends", "method", "init", "return", "if", "else",
+            "while", "break", "new", "super", "this", "println"
     };
     for (String kw : keywords) {
       if (matchesExact(kw)) {
@@ -133,15 +134,14 @@ public class Tokenizer {
   //  2) PRIMITIVES
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchPrimitive() {
+  private Optional<Token> tryMatchPrimitive(int startLine, int startColumn) {
     String[] primitives = {"Int", "Boolean", "Void"};
     for (String prim : primitives) {
       if (matchesExact(prim)) {
-        int tokenLine = line;
-        int tokenColumn = column;
+        Token token = createPrimitiveToken(prim, startLine, startColumn);
         position += prim.length();
         column += prim.length();
-        return Optional.of(createPrimitiveToken(prim, tokenLine, tokenColumn));
+        return Optional.of(token);
       }
     }
     return Optional.empty();
@@ -157,73 +157,59 @@ public class Tokenizer {
   }
 
   // --------------------------------------------------------------------
-  //  3) LITERALS (e.g. integers)
-  // --------------------------------------------------------------------
-
-  // --------------------------------------------------------------------
   //  3) LITERALS (e.g. integers, booleans, strings)
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchLiteral() {
+  private Optional<Token> tryMatchLiteral(int startLine, int startColumn) {
     // 3.1 Integers
     if (Character.isDigit(currentChar())) {
-      int tokenLine = line;
-      int tokenColumn = column;
       int start = position;
       while (position < input.length() && Character.isDigit(input.charAt(position))) {
         advance();
       }
       int lexeme = Integer.parseInt(input.substring(start, position));
-      return Optional.of(new IntegerLiteralToken(lexeme, tokenLine, tokenColumn));
+      return Optional.of(new IntegerLiteralToken(lexeme, startLine, startColumn));
     }
 
     // 3.2 Booleans
     if (matchesExact("true")) {
-      int tokenLine = line;
-      int tokenColumn = column;
+      Token token = new BooleanLiteralToken(true, startLine, startColumn);
       position += 4; // length of "true"
       column += 4;
-      return Optional.of(new BooleanLiteralToken(true, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
     if (matchesExact("false")) {
-      int tokenLine = line;
-      int tokenColumn = column;
+      Token token = new BooleanLiteralToken(false, startLine, startColumn);
       position += 5; // length of "false"
       column += 5;
-      return Optional.of(new BooleanLiteralToken(false, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
 
     // 3.3 Strings
     if (currentChar() == '\"') {
-      int tokenLine = line;
-      int tokenColumn = column;
+      int stringStartLine = startLine;
+      int stringStartColumn = startColumn;
+
       advance(); // skip opening quote
       int start = position;
 
       // Gather characters until the next quote or EOF
       while (position < input.length() && input.charAt(position) != '\"') {
-        // ignore new lines for multi-line strings, handle line changes here
-        if (input.charAt(position) == '\n') {
-          line++;
-          column = 1;
-        } else {
-          column++;
-        }
-        position++;
+        advance();
       }
 
       if (position >= input.length()) {
         // Reached EOF without closing quote
-        throw new IllegalStateException("Unterminated string literal at line " + tokenLine);
+        throw new IllegalStateException("Unterminated string literal at line " + stringStartLine);
       }
+
       // Extract the string between the quotes
       String value = input.substring(start, position);
 
       // Skip the closing quote
       advance();
-      column++;
 
-      return Optional.of(new StringLiteralToken(value, tokenLine, tokenColumn));
+      return Optional.of(new StringLiteralToken(value, stringStartLine, stringStartColumn));
     }
 
     return Optional.empty();
@@ -233,17 +219,14 @@ public class Tokenizer {
   //  4) IDENTIFIERS
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchIdentifier() {
+  private Optional<Token> tryMatchIdentifier(int startLine, int startColumn) {
     if (Character.isLetter(currentChar())) {
-      int tokenLine = line;
-      int tokenColumn = column;
       int start = position;
       while (position < input.length() && Character.isLetterOrDigit(input.charAt(position))) {
         advance();
       }
       String lexeme = input.substring(start, position);
-      // Again, (line, column, lexeme) for dynamic tokens
-      return Optional.of(new IdentifierToken(lexeme, tokenLine, tokenColumn));
+      return Optional.of(new IdentifierToken(lexeme, startLine, startColumn));
     }
     return Optional.empty();
   }
@@ -252,25 +235,23 @@ public class Tokenizer {
   //  5) OPERATORS
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchOperator() {
+  private Optional<Token> tryMatchOperator(int startLine, int startColumn) {
     // Check for two-char operators first
     if (matchesTwoCharOperator()) {
-      int tokenLine = line;
-      int tokenColumn = column;
       String lexeme = input.substring(position, position + 2);
+      Token token = createOperatorToken(lexeme, startLine, startColumn);
       position += 2;
       column += 2;
-      return Optional.of(createOperatorToken(lexeme, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
 
     // Then single-char operators
     String operators = "+-*/=<>";
     if (operators.indexOf(currentChar()) != -1) {
-      int tokenLine = line;
-      int tokenColumn = column;
       String lexeme = String.valueOf(currentChar());
+      Token token = createOperatorToken(lexeme, startLine, startColumn);
       advance();
-      return Optional.of(createOperatorToken(lexeme, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
     return Optional.empty();
   }
@@ -281,9 +262,9 @@ public class Tokenizer {
     }
     String candidate = input.substring(position, position + 2);
     return candidate.equals("==")
-        || candidate.equals("!=")
-        || candidate.equals("<=")
-        || candidate.equals(">=");
+            || candidate.equals("!=")
+            || candidate.equals("<=")
+            || candidate.equals(">=");
   }
 
   private Token createOperatorToken(String lexeme, int line, int column) {
@@ -307,16 +288,14 @@ public class Tokenizer {
   //  6) DELIMITERS (parentheses, braces, commas, etc.)
   // --------------------------------------------------------------------
 
-  private Optional<Token> tryMatchDelimiter() {
-
+  private Optional<Token> tryMatchDelimiter(int startLine, int startColumn) {
     // Single-character delimiters
     String delimiters = "()[]{};,.";
     if (delimiters.indexOf(currentChar()) != -1) {
-      int tokenLine = line;
-      int tokenColumn = column;
       char c = currentChar();
+      Token token = createDelimiterToken(c, startLine, startColumn);
       advance();
-      return Optional.of(createDelimiterToken(c, tokenLine, tokenColumn));
+      return Optional.of(token);
     }
     return Optional.empty();
   }
@@ -327,6 +306,8 @@ public class Tokenizer {
       case ')' -> new RightParenToken(line, column);
       case '{' -> new LeftBraceToken(line, column);
       case '}' -> new RightBraceToken(line, column);
+      case '[' -> new LeftSquareBracketToken(line, column);
+      case ']' -> new RightSquareBracketToken(line, column);
       case ';' -> new SemicolonToken(line, column);
       case ',' -> new CommaToken(line, column);
       case '.' -> new DotToken(line, column);
@@ -355,7 +336,6 @@ public class Tokenizer {
     }
     return true;
   }
-
 
   public ArrayList<Token> tokenize(){
     final ArrayList<Token> tokens = new ArrayList<>();
