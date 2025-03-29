@@ -1,0 +1,4 @@
+class Example {
+    Int x = 10;
+    println("Hello, world");
+}
