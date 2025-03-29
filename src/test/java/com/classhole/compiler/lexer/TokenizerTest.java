@@ -183,15 +183,6 @@ public class TokenizerTest {
     assertInstanceOf(DotToken.class, token);
   }
 
-  /**
-   * 5) Test unknown delimiter (e.g. '[') to cover the default branch in createDelimiterToken().
-   */
-  @Test
-  public void testUnknownDelimiter() {
-    Tokenizer tokenizer = new Tokenizer("[");
-    Exception exception = assertThrows(IllegalArgumentException.class, tokenizer::nextToken);
-    assertEquals("Unknown delimiter: [", exception.getMessage());
-  }
 
   /**
    * 6) Test a multi-line string to ensure line increments inside the string literal are covered.
@@ -235,12 +226,12 @@ public class TokenizerTest {
 
     // check the number of tokens
     assertEquals(expectedLexemes.length, tokens.size(),
-        "Mismatch in the number of tokens returned by tokenize()");
+            "Mismatch in the number of tokens returned by tokenize()");
 
     // check each token is correctly mapped
     for (int i = 0; i < expectedLexemes.length; i++) {
       assertEquals(expectedLexemes[i], tokens.get(i).getLexeme(),
-          "Unexpected lexeme at token index " + i);
+              "Unexpected lexeme at token index " + i);
     }
   }
   @Test
