@@ -6,6 +6,8 @@ import com.classhole.compiler.lexer.literals.*;
 import com.classhole.compiler.lexer.operators.*;
 import com.classhole.compiler.lexer.primitives.*;
 import java.util.ArrayList;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -267,7 +269,8 @@ public class TokenizerTest {
   @Test
   public void testLineAndColumnTracking() {
     try {
-      String input = Files.readString(Path.of("test_input.txt"));
+      Path path = Path.of(getClass().getClassLoader().getResource("test_input.txt").toURI());
+      String input = Files.readString(path);
       Tokenizer tokenizer = new Tokenizer(input);
       assertAll("Line and Column Tracking",
               () -> {
@@ -277,71 +280,76 @@ public class TokenizerTest {
               () -> {
                 tokenizer.nextToken().orElseThrow();  // class
                 assertEquals(1, tokenizer.getLine());
-                assertEquals(7, tokenizer.getColumn());
+                assertEquals(6, tokenizer.getColumn());
               },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // Example
                 assertEquals(1, tokenizer.getLine());
-                assertEquals(15, tokenizer.getColumn());
+                assertEquals(14, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // {
-                assertEquals(2, tokenizer.getLine());
-                assertEquals(3, tokenizer.getColumn());
+                assertEquals(1, tokenizer.getLine());
+                assertEquals(16, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // Int
                 assertEquals(2, tokenizer.getLine());
-                assertEquals(7, tokenizer.getColumn());
+                assertEquals(8, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // x
                 assertEquals(2, tokenizer.getLine());
-                assertEquals(9, tokenizer.getColumn());
+                assertEquals(10, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // =
                 assertEquals(2, tokenizer.getLine());
-                assertEquals(11, tokenizer.getColumn());
+                assertEquals(12, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // 10
                 assertEquals(2, tokenizer.getLine());
-                assertEquals(13, tokenizer.getColumn());
+                assertEquals(15, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // ;
-                assertEquals(3, tokenizer.getLine());
-                assertEquals(3, tokenizer.getColumn());
+                assertEquals(2, tokenizer.getLine());
+                assertEquals(16, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // println
                 assertEquals(3, tokenizer.getLine());
-                assertEquals(11, tokenizer.getColumn());
+                assertEquals(12, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // (
                 assertEquals(3, tokenizer.getLine());
-                assertEquals(12, tokenizer.getColumn());
+                assertEquals(13, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // "Hello, world"
                 assertEquals(3, tokenizer.getLine());
-                assertEquals(26, tokenizer.getColumn());
+                assertEquals(27, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // )
                 assertEquals(3, tokenizer.getLine());
-                assertEquals(27, tokenizer.getColumn());
+                assertEquals(28, tokenizer.getColumn());
                 },
               () -> {
                 tokenizer.nextToken().orElseThrow();  // ;
+                assertEquals(3, tokenizer.getLine());
+                assertEquals(29, tokenizer.getColumn());
+              },
+              () -> {
+                tokenizer.nextToken().orElseThrow();  // }
                 assertEquals(4, tokenizer.getLine());
-                assertEquals(1, tokenizer.getColumn());
+                assertEquals(2, tokenizer.getColumn());
               }
       );
     } catch (Exception e) {
-      System.out.println("io error");
+      Assertions.fail();
     }
   }
 }
