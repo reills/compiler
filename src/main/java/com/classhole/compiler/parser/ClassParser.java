@@ -125,7 +125,7 @@ public class ClassParser {
     // Optional super(...)
     Optional<List<Exp>> superArgs = Optional.empty();
     Token next = parser.peek();
-    if (next instanceof IdentifierToken id && id.name().equals("super")) {
+    if (next instanceof SuperToken) {
       parser.setPos(parser.getPos() + 1); // consume 'super'
       ParseUtility.expect(parser, LeftParenToken.class, "Expected '(' after 'super'");
       ParseResult<List<Exp>> args = ExpressionParser.parseCommaExp(parser, parser.getPos());
