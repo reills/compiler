@@ -259,4 +259,20 @@ public class TokenizerTest {
     // Will throw if parseInt fails—good stress test
     // since int is too big
   }
+
+  @Test
+  public void testIntegerDeclaration() {
+    Tokenizer tokenizer = new Tokenizer("intVar = 1");
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(AssignToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(IntegerLiteralToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  @Test
+  public void testObjectDotMethod() {
+    Tokenizer tokenizer = new Tokenizer("obj.comp");
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(DotToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+  }
 }

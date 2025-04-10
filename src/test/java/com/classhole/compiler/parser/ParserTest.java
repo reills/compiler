@@ -2,6 +2,7 @@ package com.classhole.compiler.parser;
 
 import com.classhole.compiler.lexer.Token;
 import com.classhole.compiler.lexer.Tokenizer;
+import com.classhole.compiler.parser.ast.Exp;
 import com.classhole.compiler.parser.ast.Program;
 
 
@@ -13,6 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ParserTest {
 
+  private void assertExpressionSource(String source, String expected) throws ParseException {
+    Tokenizer tokenizer = new Tokenizer(source);
+    Token[] tokens = tokenizer.tokenize().toArray(new Token[0]);
+    Parser parser = new Parser(tokens);
+    ParseResult<Exp> parsed = ExpressionParser.exp(parser, 0);
+  
+    Exp expr = parsed.result();
+    assertNotNull(expr, "Expected expression but got null");
+    assertEquals(expected, expr.toString(), "Parsed expression does not match expected structure");
+  }
+
   private Program parse(String source) throws ParseException {
     Tokenizer tokenizer = new Tokenizer(source);
     //oops tokenizer is making arrayList.. convert it to Token[]
@@ -21,7 +33,52 @@ public class ParserTest {
     Parser parser = new Parser(tokens);
     return parser.parseWholeProgram();
   }
+ ////////////////////////////////////////////////////////////
+ @Test
+public void testSimpleBinaryExpressionParsing() throws ParseException {
+  assertExpressionSource("1 + 2;", 
+    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]");
+} 
 
+@Test
+public void testOperatorPrecedenceParsing() throws ParseException {
+  assertExpressionSource("1 + 2 * 3;",
+    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=BinaryExp[left=IntLiteralExp[value=2], operator=*, right=IntLiteralExp[value=3]]]");
+}
+
+@Test
+public void testParenthesizedExpressionParsing() throws ParseException {
+  assertExpressionSource("(1 + 2) * 3;",
+    "BinaryExp[left=ParenExp[expression=BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]], operator=*, right=IntLiteralExp[value=3]]");
+}
+
+
+@Test
+public void testStringLiteralParsing() throws ParseException {
+  assertExpressionSource("\"hello\";",
+    "StringLiteralExp[value=hello]");
+}
+
+@Test
+public void testVariableExpressionParsing() throws ParseException {
+  assertExpressionSource("x;",
+    "VarExp[name=x]");
+}
+
+@Test
+public void testMethodCallParsing() throws ParseException {
+  assertExpressionSource("obj.add(1, 2);",
+    "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
+}
+
+  @Test
+  public void testChainedBinaryExpression() throws ParseException {
+    String code = "1 + 2 * 3 - 4 / 2;";
+    Program program = parse(code);
+    System.out.println(program);
+    assertNotNull(program);
+  }
+ ///////////////////////////////////////////////
   @Test
   public void testSimpleClass() throws ParseException {
     String code = """
