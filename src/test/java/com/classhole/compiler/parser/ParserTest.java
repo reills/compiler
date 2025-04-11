@@ -4,6 +4,13 @@ import com.classhole.compiler.lexer.Token;
 import com.classhole.compiler.lexer.Tokenizer;
 import com.classhole.compiler.parser.ast.Exp;
 import com.classhole.compiler.parser.ast.Program;
+import com.classhole.compiler.parser.ast.nodes.statements.AssignStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.BlockStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.ExprStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.IfStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.ReturnStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.VarDecStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.WhileStmt;
 
 import java.text.ParseException;
 
@@ -536,29 +543,197 @@ public class ParserTest {
   @Test
   public void testFullMixedExpressionParsing() throws ParseException {
     assertExpressionSource(
-      "((1 + 2) * obj.calc(3).getValue()) == 9;",
-      "BinaryExp[" +
-        "left=ParenExp[expression=BinaryExp[" +
-          "left=ParenExp[expression=BinaryExp[" +
+        "((1 + 2) * obj.calc(3).getValue()) == 9;",
+        "BinaryExp[" +
+            "left=ParenExp[expression=BinaryExp[" +
+            "left=ParenExp[expression=BinaryExp[" +
             "left=IntLiteralExp[value=1], " +
             "operator=+, " +
             "right=IntLiteralExp[value=2]" +
-          "]], " +
-          "operator=*, " +
-          "right=CallMethodExp[" +
+            "]], " +
+            "operator=*, " +
+            "right=CallMethodExp[" +
             "target=CallMethodExp[" +
-              "target=VarExp[name=obj], " +
-              "methodName=calc, " +
-              "args=[IntLiteralExp[value=3]]" +
+            "target=VarExp[name=obj], " +
+            "methodName=calc, " +
+            "args=[IntLiteralExp[value=3]]" +
             "], " +
             "methodName=getValue, " +
             "args=[]" +
-          "]" +
-        "]], " +
-        "operator===, " +
-        "right=IntLiteralExp[value=9]" +
-      "]"
-    );
+            "]" +
+            "]], " +
+            "operator===, " +
+            "right=IntLiteralExp[value=9]" +
+            "]");
   }
-  
+
+  @Test
+  public void testVarDeclarationStmt() throws ParseException {
+    String code = "Int x;";
+    Program program = parse(code);
+    assertEquals("Int", ((VarDecStmt) program.entryPoint().get(0)).type());
+    assertEquals("x", ((VarDecStmt) program.entryPoint().get(0)).name());
+  }
+
+  @Test
+  public void testExprStmt() throws ParseException {
+    String code = "obj.call();";
+    Program program = parse(code);
+    assertTrue(program.entryPoint().get(0) instanceof ExprStmt);
+  }
+
+  @Test
+  public void testIfElseStmt() throws ParseException {
+    String code = """
+          if (true) {
+            return;
+          } else {
+            break;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    assertNotNull(program.entryPoint().get(0));
+    assertTrue(program.entryPoint().get(0) instanceof IfStmt);
+  }
+
+  @Test
+  public void testWhileStmt() throws ParseException {
+    String code = """
+          while (x < 5) {
+            x = x + 1;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    assertTrue(program.entryPoint().get(0) instanceof WhileStmt);
+  }
+
+  @Test
+  public void testBlockStmt() throws ParseException {
+    String code = """
+        {
+          Int y;
+          y = 2;
+        }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    assertTrue(program.entryPoint().get(0) instanceof BlockStmt);
+  }
+
+  @Test
+  public void testProgramWithOnlyStatements() throws ParseException {
+    String code = """
+          Int x;
+          x = 10;
+          println(x);
+        """;
+    Program program = parse(code);
+    assertTrue(program.classes().isEmpty());
+    assertEquals(3, program.entryPoint().size());
+  }
+
+  @Test
+  public void testProgramWithClassAndStatements() throws ParseException {
+    String code = """
+          class Dog {
+            Int age;
+            init() {}
+            method bark() Void { return println(1); }
+          }
+          Dog d;
+          d = new Dog();
+          d.bark();
+        """;
+    Program program = parse(code);
+    assertEquals(1, program.classes().size());
+    assertEquals(3, program.entryPoint().size());
+  }
+
+  @Test
+  public void testProgramWithMultipleClasses() throws ParseException {
+    String code = """
+          class A {
+            init() {}
+          }
+          class B {
+            init() {}
+          }
+          Int x;
+          x = 5;
+        """;
+    Program program = parse(code);
+    assertEquals(2, program.classes().size());
+    assertEquals(2, program.entryPoint().size());
+  }
+
+  @Test
+  public void testProgramWithOnlyClassesFails() {
+    String code = """
+          class A {
+            init() {}
+          }
+        """;
+    assertThrows(ParseException.class, () -> parse(code));
+  }
+
+  @Test
+  public void testStatementsBeforeClassDefinitionFails() {
+    String code = """
+          Int x;
+          class A {
+            init() {}
+          }
+        """;
+    assertThrows(ParseException.class, () -> parse(code));
+  }
+
+  @Test
+  public void testExpectSuccess() throws ParseException {
+    Token[] tokens = new Tokenizer("(").tokenize().toArray(new Token[0]);
+    Parser parser = new Parser(tokens);
+
+    Token token = ParseUtility.expect(parser, com.classhole.compiler.lexer.delimiters.LeftParenToken.class,
+        "Expected '('");
+
+    assertTrue(token instanceof com.classhole.compiler.lexer.delimiters.LeftParenToken);
+    assertEquals(1, parser.getPos());
+  }
+
+  @Test
+  public void testExpectFailsOnWrongTokenType() {
+    Token[] tokens = new Tokenizer("42").tokenize().toArray(new Token[0]);
+    Parser parser = new Parser(tokens);
+
+    ParseException ex = assertThrows(ParseException.class,
+        () -> ParseUtility.expect(parser, com.classhole.compiler.lexer.keywords.ReturnToken.class, "Expected return"));
+
+    assertTrue(ex.getMessage().contains("Expected return"));
+  }
+
+  @Test
+  public void testExpectFailsOnEmptyInput() {
+    Token[] tokens = new Token[] {}; // no tokens
+    Parser parser = new Parser(tokens);
+
+    ParseException ex = assertThrows(ParseException.class, () -> ParseUtility.expect(parser,
+        com.classhole.compiler.lexer.delimiters.LeftBraceToken.class, "Expected '{'"));
+
+    assertTrue(ex.getMessage().contains("Ran out of tokens"));
+  }
+
+  @Test
+  public void testVoidVarDeclaration() throws ParseException {
+    String code = "Void flag;";
+    Program program = parse(code);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    assertEquals("Void", stmt.type());
+  }
+
+  @Test
+  public void testCustomTypeVarDeclaration() throws ParseException {
+    String code = "CustomType x;";
+    Program program = parse(code);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    assertEquals("CustomType", stmt.type());
+  }
+
 }
