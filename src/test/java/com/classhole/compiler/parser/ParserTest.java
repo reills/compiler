@@ -33,52 +33,7 @@ public class ParserTest {
     Parser parser = new Parser(tokens);
     return parser.parseWholeProgram();
   }
- ////////////////////////////////////////////////////////////
- @Test
-public void testSimpleBinaryExpressionParsing() throws ParseException {
-  assertExpressionSource("1 + 2;", 
-    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]");
-} 
-
-@Test
-public void testOperatorPrecedenceParsing() throws ParseException {
-  assertExpressionSource("1 + 2 * 3;",
-    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=BinaryExp[left=IntLiteralExp[value=2], operator=*, right=IntLiteralExp[value=3]]]");
-}
-
-@Test
-public void testParenthesizedExpressionParsing() throws ParseException {
-  assertExpressionSource("(1 + 2) * 3;",
-    "BinaryExp[left=ParenExp[expression=BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]], operator=*, right=IntLiteralExp[value=3]]");
-}
-
-
-@Test
-public void testStringLiteralParsing() throws ParseException {
-  assertExpressionSource("\"hello\";",
-    "StringLiteralExp[value=hello]");
-}
-
-@Test
-public void testVariableExpressionParsing() throws ParseException {
-  assertExpressionSource("x;",
-    "VarExp[name=x]");
-}
-
-@Test
-public void testMethodCallParsing() throws ParseException {
-  assertExpressionSource("obj.add(1, 2);",
-    "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
-}
-
-  @Test
-  public void testChainedBinaryExpression() throws ParseException {
-    String code = "1 + 2 * 3 - 4 / 2;";
-    Program program = parse(code);
-    System.out.println(program);
-    assertNotNull(program);
-  }
- ///////////////////////////////////////////////
+ 
   @Test
   public void testSimpleClass() throws ParseException {
     String code = """
@@ -429,4 +384,117 @@ public void testMethodCallParsing() throws ParseException {
     Program program = parse(code);
     assertNotNull(program);
   }
+
+  @Test
+  public void testChainedBinaryExpression() throws ParseException {
+    String code = "1 + 2 * 3 - 4 / 2;";
+    Program program = parse(code);
+    System.out.println(program);
+    assertNotNull(program);
+  }
+
+  @Test
+    public void testSimpleBinaryExpressionParsing() throws ParseException {
+    assertExpressionSource("1 + 2;", 
+    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]");
+  } 
+
+  @Test
+    public void testOperatorPrecedenceParsing() throws ParseException {
+    assertExpressionSource("1 + 2 * 3;",
+    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=BinaryExp[left=IntLiteralExp[value=2], operator=*, right=IntLiteralExp[value=3]]]");
+  }
+
+  @Test
+    public void testParenthesizedExpressionParsing() throws ParseException {
+    assertExpressionSource("(1 + 2) * 3;",
+    "BinaryExp[left=ParenExp[expression=BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]], operator=*, right=IntLiteralExp[value=3]]");
+  }
+
+
+  @Test
+    public void testStringLiteralParsing() throws ParseException {
+    assertExpressionSource("\"hello\";",
+    "StringLiteralExp[value=hello]");
+  }
+
+  @Test
+    public void testVariableExpressionParsing() throws ParseException {
+    assertExpressionSource("x;",
+    "VarExp[name=x]");
+  }
+
+  @Test
+    public void testMethodCallParsing() throws ParseException {
+    assertExpressionSource("obj.add(1, 2);",
+    "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
+  }
+
+  @Test
+  public void testComplexExpression() throws ParseException {
+    assertExpressionSource(
+      "x + 3 * (2 - 1);",
+      "BinaryExp[" +
+        "left=VarExp[name=x], " +
+        "operator=+, " +
+        "right=BinaryExp[" +
+          "left=IntLiteralExp[value=3], " +
+          "operator=*, " +
+          "right=ParenExp[expression=BinaryExp[" +
+            "left=IntLiteralExp[value=2], " +
+            "operator=-, " +
+            "right=IntLiteralExp[value=1]" +
+          "]]" +
+        "]" +
+      "]"
+    );
+  }
+
+  @Test
+  public void testChainedMethodCallsParsing() throws ParseException {
+  assertExpressionSource(
+    "obj.foo().bar();",
+    "CallMethodExp[" +
+      "target=CallMethodExp[" +
+        "target=VarExp[name=obj], " +
+        "methodName=foo, " +
+        "args=[]" +
+      "], " +
+      "methodName=bar, " +
+      "args=[]" +
+    "]"
+  );
+}
+
+@Test
+public void testNestedParenthesesParsing() throws ParseException {
+  assertExpressionSource(
+    "(((1 + 2))) * 4;",
+    "BinaryExp[" +
+      "left=ParenExp[expression=ParenExp[expression=ParenExp[expression=BinaryExp[" +
+        "left=IntLiteralExp[value=1], " +
+        "operator=+, " +
+        "right=IntLiteralExp[value=2]" +
+      "]]]], " +
+      "operator=*, " +
+      "right=IntLiteralExp[value=4]" +
+    "]"
+  );
+}
+
+@Test
+public void testSimpleLogicalOperatorParsing() throws ParseException {
+  assertExpressionSource(
+    "x != 0;",
+    "BinaryExp[" +
+      "left=VarExp[name=x], " +
+      "operator=!=, " +
+      "right=IntLiteralExp[value=0]" +
+    "]"
+  );
+}
+
+
+      
+  
 }

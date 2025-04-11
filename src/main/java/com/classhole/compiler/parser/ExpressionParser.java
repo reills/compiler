@@ -17,8 +17,12 @@ import java.util.List;
 public class ExpressionParser {
 
   //exp ::= add_exp
+  // public static ParseResult<Exp> exp(Parser parser, int startPos) throws ParseException {
+  //   return addExp(parser, startPos);
+  // }
+  //exp ::= rel_exp
   public static ParseResult<Exp> exp(Parser parser, int startPos) throws ParseException {
-    return addExp(parser, startPos);
+    return relExp(parser, startPos);
   }
 
   //add_exp ::= mult_exp ((`+` | `-`) mult_exp)*
@@ -206,4 +210,31 @@ public class ExpressionParser {
 
     return new ParseResult<>(args, pos);
   }
+
+
+//rel_exp ::= add_exp ((== | != | <= | >= | < | >) add_exp)*
+public static ParseResult<Exp> relExp(Parser parser, int startPos) throws ParseException {
+  ParseResult<Exp> left = addExp(parser, startPos);
+  int pos = left.nextPos();
+
+  while (true) {
+    Token op = parser.readToken(pos);
+    if (op instanceof EqualsToken || op instanceof NotEqualsToken ||
+        op instanceof LessEqualToken || op instanceof GreaterEqualToken ||
+        op instanceof LessThanToken || op instanceof GreaterThanToken) {
+
+      String operator = op.getLexeme();
+      ParseResult<Exp> right = addExp(parser, pos + 1);
+      left = new ParseResult<>(new BinaryExp(left.result(), operator, right.result()), right.nextPos());
+      pos = right.nextPos();
+    } else {
+      break;
+    }
+  }
+
+  return left;
+}
+
+
+
 }
