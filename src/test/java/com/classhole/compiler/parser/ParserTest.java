@@ -5,12 +5,10 @@ import com.classhole.compiler.lexer.Tokenizer;
 import com.classhole.compiler.parser.ast.Exp;
 import com.classhole.compiler.parser.ast.Program;
 
-
 import java.text.ParseException;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class ParserTest {
 
@@ -19,7 +17,7 @@ public class ParserTest {
     Token[] tokens = tokenizer.tokenize().toArray(new Token[0]);
     Parser parser = new Parser(tokens);
     ParseResult<Exp> parsed = ExpressionParser.exp(parser, 0);
-  
+
     Exp expr = parsed.result();
     assertNotNull(expr, "Expected expression but got null");
     assertEquals(expected, expr.toString(), "Parsed expression does not match expected structure");
@@ -27,30 +25,30 @@ public class ParserTest {
 
   private Program parse(String source) throws ParseException {
     Tokenizer tokenizer = new Tokenizer(source);
-    //oops tokenizer is making arrayList.. convert it to Token[]
+    // oops tokenizer is making arrayList.. convert it to Token[]
     Token[] tokens = tokenizer.tokenize().toArray(new Token[0]);
 
     Parser parser = new Parser(tokens);
     return parser.parseWholeProgram();
   }
- 
+
   @Test
   public void testSimpleClass() throws ParseException {
     String code = """
-      class Animal {
-        Int age;
-        init() {}
-        method speak() Void {
-          return println(0);
-        }
-      }
+          class Animal {
+            Int age;
+            init() {}
+            method speak() Void {
+              return println(0);
+            }
+          }
 
-      Animal a;
-      a = new Animal();
-      a.speak();
-    """;
+          Animal a;
+          a = new Animal();
+          a.speak();
+        """;
 
-      Program program = parse(code);
+    Program program = parse(code);
     assertNotNull(program, "Program should not be null");
     assertFalse(program.classes().isEmpty(), "Should contain at least one class");
     assertFalse(program.entryPoint().isEmpty(), "Should contain entry point statements");
@@ -60,20 +58,20 @@ public class ParserTest {
   @Test
   public void testInheritance() throws ParseException {
     String code = """
-      class Animal {
-        init() {}
-        method speak() Void { return println(0); }
-      }
+          class Animal {
+            init() {}
+            method speak() Void { return println(0); }
+          }
 
-      class Cat extends Animal {
-        init() { super(); }
-        method speak() Void { return println(1); }
-      }
+          class Cat extends Animal {
+            init() { super(); }
+            method speak() Void { return println(1); }
+          }
 
-      Animal cat;
-      cat = new Cat();
-      cat.speak();
-    """;
+          Animal cat;
+          cat = new Cat();
+          cat.speak();
+        """;
 
     Program program = parse(code);
     assertEquals(2, program.classes().size());
@@ -83,16 +81,16 @@ public class ParserTest {
   @Test
   public void testEmptyConstructorWithFields() throws ParseException {
     String code = """
-      class Dog {
-        Int barkCount;
-        init() {}
-        method bark() Void { return println(2); }
-      }
+          class Dog {
+            Int barkCount;
+            init() {}
+            method bark() Void { return println(2); }
+          }
 
-      Dog d;
-      d = new Dog();
-      d.bark();
-    """;
+          Dog d;
+          d = new Dog();
+          d.bark();
+        """;
 
     Program program = parse(code);
     assertEquals(1, program.classes().size());
@@ -101,13 +99,13 @@ public class ParserTest {
   @Test
   public void testMissingSemicolonFails() {
     String bad = """
-    class A {
-      init() {}
-    }
+          class A {
+            init() {}
+          }
 
-    Int x
-    x = 1;
-  """;
+          Int x
+          x = 1;
+        """;
 
     assertThrows(ParseException.class, () -> parse(bad));
   }
@@ -115,10 +113,10 @@ public class ParserTest {
   @Test
   public void testBlockStatement() throws ParseException {
     String code = """
-    {
-      return;
-    }
-  """;
+          {
+            return;
+          }
+        """;
     Program program = parse(code); // Dummy class needed
     assertNotNull(program);
   }
@@ -126,12 +124,12 @@ public class ParserTest {
   @Test
   public void testWhileLoop() throws ParseException {
     String code = """
-    {
-      while (true) {
-        return;
-      }
-    }
-  """;
+          {
+            while (true) {
+              return;
+            }
+          }
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -139,12 +137,12 @@ public class ParserTest {
   @Test
   public void testIfStatement() throws ParseException {
     String code = """
-    {
-      if (true) {
-        return;
-      }
-    }
-  """;
+          {
+            if (true) {
+              return;
+            }
+          }
+        """;
     Program program = parse("class A { init() {} } " + code);
     assertNotNull(program);
   }
@@ -152,14 +150,14 @@ public class ParserTest {
   @Test
   public void testIfElseStatement() throws ParseException {
     String code = """
-    {
-      if (false) {
-        return;
-      } else {
-        return;
-      }
-    }
-  """;
+          {
+            if (false) {
+              return;
+            } else {
+              return;
+            }
+          }
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -167,12 +165,12 @@ public class ParserTest {
   @Test
   public void testBreakStatement() throws ParseException {
     String code = """
-    {
-      while (true) {
-        break;
-      }
-    }
-  """;
+          {
+            while (true) {
+              break;
+            }
+          }
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -200,8 +198,8 @@ public class ParserTest {
   @Test
   public void testStringLiteralExpression() throws ParseException {
     String code = """
-      println("Hello, world!");
-  """;
+            println("Hello, world!");
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -209,13 +207,13 @@ public class ParserTest {
   @Test
   public void testEmptyConstructorArguments() throws ParseException {
     String code = """
-    class Test {
-      init() {}
-    }
-    
-    Test t;
-    t = new Test();
-  """;
+          class Test {
+            init() {}
+          }
+
+          Test t;
+          t = new Test();
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -230,18 +228,18 @@ public class ParserTest {
   @Test
   public void testMultipleCommaExpression() throws ParseException {
     String code = """
-            class Animal {
-        Int age;
-        init() {}
-        method speak(Int a, Int b) Void {
-          return println(0);
+              class Animal {
+          Int age;
+          init() {}
+          method speak(Int a, Int b) Void {
+            return println(0);
+          }
         }
-      }
-      
-      Animal a;
-      a = new Animal(1, 2);
-      a.speak(3, 4);
-            """;
+
+        Animal a;
+        a = new Animal(1, 2);
+        a.speak(3, 4);
+              """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -249,15 +247,15 @@ public class ParserTest {
   @Test
   public void testConstructorWithSuperCall() throws ParseException {
     String code = """
-              class Foo extends Bar {
-                int x;
-                init(int y) {
-                  super(1, 2);
-                  return;
-                }
-              }
-              Foo f;
-            """;
+          class Foo extends Bar {
+            int x;
+            init(int y) {
+              super(1, 2);
+              return;
+            }
+          }
+          Foo f;
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -277,15 +275,15 @@ public class ParserTest {
   @Test
   public void testClassDef_FieldDeclarations() throws ParseException {
     String code = """
-    class TestFields {
-      int field1;
-      boolean field2;
-      void field3;
-      CustomType field4;
-      init() {}
-    }
-    TestFields t;
-    """;
+        class TestFields {
+          int field1;
+          boolean field2;
+          void field3;
+          CustomType field4;
+          init() {}
+        }
+        TestFields t;
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -305,27 +303,27 @@ public class ParserTest {
   @Test
   public void testMethodDef_NonIdentifierMethodName() {
     String code = """
-    class TestClass {
-      init() {}
-      method 123() void {}
-    }
-    TestClass t;
-    """;
+        class TestClass {
+          init() {}
+          method 123() void {}
+        }
+        TestClass t;
+        """;
     assertThrows(ParseException.class, () -> parse(code));
   }
 
   @Test
   public void testMethodDef_ReturnTypes() throws ParseException {
     String code = """
-    class TestClass {
-      init() {}
-      method method1() int { return 1; }
-      method method2() boolean { return true; }
-      method method3() void {}
-      method method4() CustomType { return new CustomType(); }
-    }
-    TestClass t;
-    """;
+        class TestClass {
+          init() {}
+          method method1() int { return 1; }
+          method method2() boolean { return true; }
+          method method3() void {}
+          method method4() CustomType { return new CustomType(); }
+        }
+        TestClass t;
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -333,25 +331,25 @@ public class ParserTest {
   @Test
   public void testMethodDef_InvalidReturnType() {
     String code = """
-    class TestClass {
-      init() {}
-      method badMethod() 123 {}
-    }
-    TestClass t;
-    """;
+        class TestClass {
+          init() {}
+          method badMethod() 123 {}
+        }
+        TestClass t;
+        """;
     assertThrows(ParseException.class, () -> parse(code));
   }
 
   @Test
   public void testClassDef_WithSuperConstructorCall() throws ParseException {
     String code = """
-    class Child extends Parent {
-      init() {
-        super(1, true, "test");
-      }
-    }
-    Child c;
-    """;
+        class Child extends Parent {
+          init() {
+            super(1, true, "test");
+          }
+        }
+        Child c;
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -360,27 +358,27 @@ public class ParserTest {
   public void testClassDef_WithFieldsAndMethods() throws ParseException {
     // Comprehensive test covering multiple aspects of class parsing
     String code = """
-    class CompleteClass extends BaseClass {
-      int field1;
-      boolean field2;
-      CustomType field3;
-      
-      init(int param1, boolean param2) {
-        super(param1, param2);
-        field1 = param1;
-        field2 = param2;
-      }
-      
-      method calculate(int a, int b) int {
-        return a + b;
-      }
-      
-      method doSomething() void {
-        println("Doing something");
-      }
-    }
-    CompleteClass c;
-    """;
+        class CompleteClass extends BaseClass {
+          int field1;
+          boolean field2;
+          CustomType field3;
+
+          init(int param1, boolean param2) {
+            super(param1, param2);
+            field1 = param1;
+            field2 = param2;
+          }
+
+          method calculate(int a, int b) int {
+            return a + b;
+          }
+
+          method doSomething() void {
+            println("Doing something");
+          }
+        }
+        CompleteClass c;
+        """;
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -394,107 +392,173 @@ public class ParserTest {
   }
 
   @Test
-    public void testSimpleBinaryExpressionParsing() throws ParseException {
-    assertExpressionSource("1 + 2;", 
-    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]");
-  } 
+  public void testSimpleBinaryExpressionParsing() throws ParseException {
+    assertExpressionSource("1 + 2;",
+        "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]");
+  }
 
   @Test
-    public void testOperatorPrecedenceParsing() throws ParseException {
+  public void testOperatorPrecedenceParsing() throws ParseException {
     assertExpressionSource("1 + 2 * 3;",
-    "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=BinaryExp[left=IntLiteralExp[value=2], operator=*, right=IntLiteralExp[value=3]]]");
+        "BinaryExp[left=IntLiteralExp[value=1], operator=+, right=BinaryExp[left=IntLiteralExp[value=2], operator=*, right=IntLiteralExp[value=3]]]");
   }
 
   @Test
-    public void testParenthesizedExpressionParsing() throws ParseException {
+  public void testParenthesizedExpressionParsing() throws ParseException {
     assertExpressionSource("(1 + 2) * 3;",
-    "BinaryExp[left=ParenExp[expression=BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]], operator=*, right=IntLiteralExp[value=3]]");
+        "BinaryExp[left=ParenExp[expression=BinaryExp[left=IntLiteralExp[value=1], operator=+, right=IntLiteralExp[value=2]]], operator=*, right=IntLiteralExp[value=3]]");
   }
 
-
   @Test
-    public void testStringLiteralParsing() throws ParseException {
+  public void testStringLiteralParsing() throws ParseException {
     assertExpressionSource("\"hello\";",
-    "StringLiteralExp[value=hello]");
+        "StringLiteralExp[value=hello]");
   }
 
   @Test
-    public void testVariableExpressionParsing() throws ParseException {
+  public void testVariableExpressionParsing() throws ParseException {
     assertExpressionSource("x;",
-    "VarExp[name=x]");
+        "VarExp[name=x]");
   }
 
   @Test
-    public void testMethodCallParsing() throws ParseException {
+  public void testMethodCallParsing() throws ParseException {
     assertExpressionSource("obj.add(1, 2);",
-    "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
+        "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
   }
 
   @Test
   public void testComplexExpression() throws ParseException {
     assertExpressionSource(
-      "x + 3 * (2 - 1);",
-      "BinaryExp[" +
-        "left=VarExp[name=x], " +
-        "operator=+, " +
-        "right=BinaryExp[" +
-          "left=IntLiteralExp[value=3], " +
-          "operator=*, " +
-          "right=ParenExp[expression=BinaryExp[" +
+        "x + 3 * (2 - 1);",
+        "BinaryExp[" +
+            "left=VarExp[name=x], " +
+            "operator=+, " +
+            "right=BinaryExp[" +
+            "left=IntLiteralExp[value=3], " +
+            "operator=*, " +
+            "right=ParenExp[expression=BinaryExp[" +
             "left=IntLiteralExp[value=2], " +
             "operator=-, " +
             "right=IntLiteralExp[value=1]" +
-          "]]" +
-        "]" +
-      "]"
-    );
+            "]]" +
+            "]" +
+            "]");
   }
 
   @Test
   public void testChainedMethodCallsParsing() throws ParseException {
-  assertExpressionSource(
-    "obj.foo().bar();",
-    "CallMethodExp[" +
-      "target=CallMethodExp[" +
-        "target=VarExp[name=obj], " +
-        "methodName=foo, " +
-        "args=[]" +
-      "], " +
-      "methodName=bar, " +
-      "args=[]" +
-    "]"
-  );
-}
+    assertExpressionSource(
+        "obj.foo().bar();",
+        "CallMethodExp[" +
+            "target=CallMethodExp[" +
+            "target=VarExp[name=obj], " +
+            "methodName=foo, " +
+            "args=[]" +
+            "], " +
+            "methodName=bar, " +
+            "args=[]" +
+            "]");
+  }
 
-@Test
-public void testNestedParenthesesParsing() throws ParseException {
-  assertExpressionSource(
-    "(((1 + 2))) * 4;",
-    "BinaryExp[" +
-      "left=ParenExp[expression=ParenExp[expression=ParenExp[expression=BinaryExp[" +
-        "left=IntLiteralExp[value=1], " +
-        "operator=+, " +
-        "right=IntLiteralExp[value=2]" +
-      "]]]], " +
-      "operator=*, " +
-      "right=IntLiteralExp[value=4]" +
-    "]"
-  );
-}
+  @Test
+  public void testNestedParenthesesParsing() throws ParseException {
+    assertExpressionSource(
+        "(((1 + 2))) * 4;",
+        "BinaryExp[" +
+            "left=ParenExp[expression=ParenExp[expression=ParenExp[expression=BinaryExp[" +
+            "left=IntLiteralExp[value=1], " +
+            "operator=+, " +
+            "right=IntLiteralExp[value=2]" +
+            "]]]], " +
+            "operator=*, " +
+            "right=IntLiteralExp[value=4]" +
+            "]");
+  }
 
-@Test
-public void testSimpleLogicalOperatorParsing() throws ParseException {
-  assertExpressionSource(
-    "x != 0;",
-    "BinaryExp[" +
-      "left=VarExp[name=x], " +
-      "operator=!=, " +
-      "right=IntLiteralExp[value=0]" +
-    "]"
-  );
-}
+  @Test
+  public void testSimpleLogicalOperatorParsing() throws ParseException {
+    assertExpressionSource(
+        "x != 0;",
+        "BinaryExp[" +
+            "left=VarExp[name=x], " +
+            "operator=!=, " +
+            "right=IntLiteralExp[value=0]" +
+            "]");
+  }
 
+  @Test
+  public void testChainedLogicalOperatorsParsing() throws ParseException {
+    assertExpressionSource(
+        "(x + 1) < y == z >= 10;",
+        "BinaryExp[" +
+            "left=BinaryExp[" +
+            "left=BinaryExp[" +
+            "left=ParenExp[expression=BinaryExp[" +
+            "left=VarExp[name=x], " +
+            "operator=+, " +
+            "right=IntLiteralExp[value=1]" +
+            "]], " +
+            "operator=<, " +
+            "right=VarExp[name=y]" +
+            "], " +
+            "operator===, " +
+            "right=VarExp[name=z]" +
+            "], " +
+            "operator=>=, " +
+            "right=IntLiteralExp[value=10]" +
+            "]");
+  }
 
-      
+  @Test
+  public void testLogicalOperatorsWithParenthesesParsing() throws ParseException {
+    assertExpressionSource(
+        "((x + 1) < y) == (z >= 10);",
+        "BinaryExp[" +
+            "left=ParenExp[expression=BinaryExp[" +
+            "left=ParenExp[expression=BinaryExp[" +
+            "left=VarExp[name=x], " +
+            "operator=+, " +
+            "right=IntLiteralExp[value=1]" +
+            "]], " +
+            "operator=<, " +
+            "right=VarExp[name=y]" +
+            "]], " +
+            "operator===, " +
+            "right=ParenExp[expression=BinaryExp[" +
+            "left=VarExp[name=z], " +
+            "operator=>=, " +
+            "right=IntLiteralExp[value=10]" +
+            "]]" +
+            "]");
+  }
+
+  @Test
+  public void testFullMixedExpressionParsing() throws ParseException {
+    assertExpressionSource(
+      "((1 + 2) * obj.calc(3).getValue()) == 9;",
+      "BinaryExp[" +
+        "left=ParenExp[expression=BinaryExp[" +
+          "left=ParenExp[expression=BinaryExp[" +
+            "left=IntLiteralExp[value=1], " +
+            "operator=+, " +
+            "right=IntLiteralExp[value=2]" +
+          "]], " +
+          "operator=*, " +
+          "right=CallMethodExp[" +
+            "target=CallMethodExp[" +
+              "target=VarExp[name=obj], " +
+              "methodName=calc, " +
+              "args=[IntLiteralExp[value=3]]" +
+            "], " +
+            "methodName=getValue, " +
+            "args=[]" +
+          "]" +
+        "]], " +
+        "operator===, " +
+        "right=IntLiteralExp[value=9]" +
+      "]"
+    );
+  }
   
 }
