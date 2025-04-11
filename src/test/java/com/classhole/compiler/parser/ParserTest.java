@@ -4,8 +4,10 @@ import com.classhole.compiler.lexer.Token;
 import com.classhole.compiler.lexer.Tokenizer;
 import com.classhole.compiler.parser.ast.Exp;
 import com.classhole.compiler.parser.ast.Program;
+import com.classhole.compiler.parser.ast.nodes.definitions.ConstructorDef;
 import com.classhole.compiler.parser.ast.nodes.statements.AssignStmt;
 import com.classhole.compiler.parser.ast.nodes.statements.BlockStmt;
+import com.classhole.compiler.parser.ast.nodes.statements.BreakStmt;
 import com.classhole.compiler.parser.ast.nodes.statements.ExprStmt;
 import com.classhole.compiler.parser.ast.nodes.statements.IfStmt;
 import com.classhole.compiler.parser.ast.nodes.statements.ReturnStmt;
@@ -13,6 +15,7 @@ import com.classhole.compiler.parser.ast.nodes.statements.VarDecStmt;
 import com.classhole.compiler.parser.ast.nodes.statements.WhileStmt;
 
 import java.text.ParseException;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -734,6 +737,331 @@ public class ParserTest {
     Program program = parse(code);
     VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
     assertEquals("CustomType", stmt.type());
+  }
+
+  @Test
+  public void testAssignStatement() throws ParseException {
+    String code = """
+          {
+            x = 5;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    AssignStmt stmt = (AssignStmt) ((BlockStmt) program.entryPoint().get(0)).statements().get(0);
+    assertEquals("x", stmt.variableName());
+    assertEquals("IntLiteralExp[value=5]", stmt.expression().toString());
+  }
+
+  @Test
+  public void testExpressionStatement() throws ParseException {
+    String code = "x + 1;";
+    Program program = parse(code);
+    ExprStmt stmt = (ExprStmt) program.entryPoint().get(0);
+    assertEquals("BinaryExp[left=VarExp[name=x], operator=+, right=IntLiteralExp[value=1]]", stmt.exp().toString());
+  }
+
+  @Test
+  public void testVarDecCustomType() throws ParseException {
+    String code = "MyType val;";
+    Program program = parse(code);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    assertEquals("MyType", stmt.type());
+    assertEquals("val", stmt.name());
+  }
+
+  @Test
+  public void testBreakInsideWhile() throws ParseException {
+    String code = """
+          while (true) {
+            break;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    WhileStmt whileStmt = (WhileStmt) program.entryPoint().get(0);
+    BlockStmt body = (BlockStmt) whileStmt.body();
+    assertTrue(body.statements().get(0) instanceof BreakStmt);
+  }
+
+  @Test
+  public void testNestedBlockStatement() throws ParseException {
+    String code = """
+          {
+            Int x;
+            x = 10;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+    BlockStmt stmt = (BlockStmt) program.entryPoint().get(0);
+    assertEquals(2, stmt.statements().size());
+  }
+
+  @Test
+  public void testIfWithEqualityLogic() throws ParseException {
+    String code = """
+          if (x == 1) {
+            return;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+
+    assertTrue(program.entryPoint().get(0) instanceof IfStmt);
+    IfStmt stmt = (IfStmt) program.entryPoint().get(0);
+
+    assertEquals("BinaryExp[left=VarExp[name=x], operator===, right=IntLiteralExp[value=1]]",
+        stmt.condition().toString());
+  }
+
+  @Test
+  public void testWhileWithLessThanLogic() throws ParseException {
+    String code = """
+          while (a < b) {
+            break;
+          }
+        """;
+    Program program = parse("class A { init() {} } " + code);
+
+    assertTrue(program.entryPoint().get(0) instanceof WhileStmt);
+    WhileStmt stmt = (WhileStmt) program.entryPoint().get(0);
+
+    assertEquals("BinaryExp[left=VarExp[name=a], operator=<, right=VarExp[name=b]]",
+        stmt.condition().toString());
+  }
+
+  @Test
+  public void testReturnWithGreaterEqualLogic() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              return x >= 10;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    ReturnStmt stmt = (ReturnStmt) program.classes().get(0).constructor().body().get(0);
+
+    assertTrue(stmt.expression().isPresent());
+    assertEquals("BinaryExp[left=VarExp[name=x], operator=>=, right=IntLiteralExp[value=10]]",
+        stmt.expression().get().toString());
+  }
+
+  @Test
+  public void testReturnWithNotEqualsLogic() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              return x != y;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    ReturnStmt stmt = (ReturnStmt) program.classes().get(0).constructor().body().get(0);
+    assertTrue(stmt.expression().isPresent());
+    assertEquals("BinaryExp[left=VarExp[name=x], operator=!=, right=VarExp[name=y]]",
+        stmt.expression().get().toString());
+  }
+
+  @Test
+  public void testIfWithLessThanLogic() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              if (a < b) {
+                return;
+              }
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    IfStmt stmt = (IfStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("BinaryExp[left=VarExp[name=a], operator=<, right=VarExp[name=b]]", stmt.condition().toString());
+  }
+
+  @Test
+  public void testWhileWithLessEqualLogic() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              while (x <= 10) {
+                break;
+              }
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    WhileStmt stmt = (WhileStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("BinaryExp[left=VarExp[name=x], operator=<=, right=IntLiteralExp[value=10]]",
+        stmt.condition().toString());
+  }
+
+  @Test
+  public void testAssignWithLogicExpression() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              result = a > b;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    AssignStmt stmt = (AssignStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("result", stmt.variableName());
+    assertEquals("BinaryExp[left=VarExp[name=a], operator=>, right=VarExp[name=b]]", stmt.expression().toString());
+  }
+
+  @Test
+  public void testPrintlnWithLogicExpression() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              println(x == 1);
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    ExprStmt stmt = (ExprStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("PrintlnExp[exp=BinaryExp[left=VarExp[name=x], operator===, right=IntLiteralExp[value=1]]]",
+        stmt.exp().toString());
+  }
+
+  @Test
+  public void testBreakStatementAgain() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              break;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    BreakStmt stmt = (BreakStmt) program.classes().get(0).constructor().body().get(0);
+    assertNotNull(stmt);
+  }
+
+  @Test
+  public void testVarDeclarationCustomType() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              CustomType val;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    VarDecStmt stmt = (VarDecStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("CustomType", stmt.type());
+    assertEquals("val", stmt.name());
+  }
+
+  @Test
+  public void testSuperCallWithArgs() throws ParseException {
+    String code = """
+          class A extends B {
+            init() {
+              super(1, true, "ok");
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    ConstructorDef constructor = program.classes().get(0).constructor();
+    assertTrue(constructor.superArgs().isPresent());
+
+    List<Exp> args = constructor.superArgs().get();
+    assertEquals(3, args.size());
+  }
+
+  @Test
+  public void testAssignmentStatement() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              x = 42;
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    AssignStmt stmt = (AssignStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals("x", stmt.variableName());
+  }
+
+  @Test
+  public void testBlockWithMultipleStatements() throws ParseException {
+    String code = """
+          class A {
+            init() {
+              {
+                Int a;
+                a = 5;
+              }
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    BlockStmt block = (BlockStmt) program.classes().get(0).constructor().body().get(0);
+    assertEquals(2, block.statements().size());
+  }
+
+  @Test
+  public void testSuperCallNoArguments() throws ParseException {
+    String code = """
+          class A extends B {
+            init() {
+              super();
+            }
+          }
+          A a;
+        """;
+    Program program = parse(code);
+
+    assertTrue(program.classes().get(0).constructor().superArgs().isPresent());
+    assertTrue(program.classes().get(0).constructor().superArgs().get().isEmpty());
+  }
+
+  @Test
+  public void testInvalidStatementFallback() {
+    String code = """
+          class A {
+            init() {
+              @;
+            }
+          }
+          A a;
+        """;
+    assertThrows(IllegalStateException.class, () -> parse(code));
+  }
+
+  @Test
+  public void testInvalidVarDeclarationFallback() {
+    String code = """
+          class A {
+            init() {
+              Int 123;
+            }
+          }
+          A a;
+        """;
+    assertThrows(ParseException.class, () -> parse(code));
   }
 
 }
