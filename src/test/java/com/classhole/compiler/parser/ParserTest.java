@@ -249,7 +249,7 @@ public class ParserTest {
         Animal a;
         a = new Animal(1, 2);
         a.speak(3, 4);
-              """;
+             \s""";
     Program program = parse(code);
     assertNotNull(program);
   }
@@ -574,15 +574,15 @@ public class ParserTest {
   public void testVarDeclarationStmt() throws ParseException {
     String code = "Int x;";
     Program program = parse(code);
-    assertEquals("Int", ((VarDecStmt) program.entryPoint().get(0)).type());
-    assertEquals("x", ((VarDecStmt) program.entryPoint().get(0)).name());
+    assertEquals("Int", ((VarDecStmt) program.entryPoint().getFirst()).type());
+    assertEquals("x", ((VarDecStmt) program.entryPoint().getFirst()).name());
   }
 
   @Test
   public void testExprStmt() throws ParseException {
     String code = "obj.call();";
     Program program = parse(code);
-    assertTrue(program.entryPoint().get(0) instanceof ExprStmt);
+    assertInstanceOf(ExprStmt.class, program.entryPoint().getFirst());
   }
 
   @Test
@@ -595,8 +595,8 @@ public class ParserTest {
           }
         """;
     Program program = parse("class A { init() {} } " + code);
-    assertNotNull(program.entryPoint().get(0));
-    assertTrue(program.entryPoint().get(0) instanceof IfStmt);
+    assertNotNull(program.entryPoint().getFirst());
+    assertInstanceOf(IfStmt.class, program.entryPoint().getFirst());
   }
 
   @Test
@@ -607,7 +607,7 @@ public class ParserTest {
           }
         """;
     Program program = parse("class A { init() {} } " + code);
-    assertTrue(program.entryPoint().get(0) instanceof WhileStmt);
+    assertInstanceOf(WhileStmt.class, program.entryPoint().getFirst());
   }
 
   @Test
@@ -619,7 +619,7 @@ public class ParserTest {
         }
         """;
     Program program = parse("class A { init() {} } " + code);
-    assertTrue(program.entryPoint().get(0) instanceof BlockStmt);
+    assertInstanceOf(BlockStmt.class, program.entryPoint().getFirst());
   }
 
   @Test
@@ -697,7 +697,7 @@ public class ParserTest {
     Token token = ParseUtility.expect(parser, com.classhole.compiler.lexer.delimiters.LeftParenToken.class,
         "Expected '('");
 
-    assertTrue(token instanceof com.classhole.compiler.lexer.delimiters.LeftParenToken);
+    assertNotNull(token);
     assertEquals(1, parser.getPos());
   }
 
@@ -727,7 +727,7 @@ public class ParserTest {
   public void testVoidVarDeclaration() throws ParseException {
     String code = "Void flag;";
     Program program = parse(code);
-    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().getFirst();
     assertEquals("Void", stmt.type());
   }
 
@@ -735,7 +735,7 @@ public class ParserTest {
   public void testCustomTypeVarDeclaration() throws ParseException {
     String code = "CustomType x;";
     Program program = parse(code);
-    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().getFirst();
     assertEquals("CustomType", stmt.type());
   }
 
@@ -747,7 +747,7 @@ public class ParserTest {
           }
         """;
     Program program = parse("class A { init() {} } " + code);
-    AssignStmt stmt = (AssignStmt) ((BlockStmt) program.entryPoint().get(0)).statements().get(0);
+    AssignStmt stmt = (AssignStmt) ((BlockStmt) program.entryPoint().getFirst()).statements().getFirst();
     assertEquals("x", stmt.variableName());
     assertEquals("IntLiteralExp[value=5]", stmt.expression().toString());
   }
@@ -756,7 +756,7 @@ public class ParserTest {
   public void testExpressionStatement() throws ParseException {
     String code = "x + 1;";
     Program program = parse(code);
-    ExprStmt stmt = (ExprStmt) program.entryPoint().get(0);
+    ExprStmt stmt = (ExprStmt) program.entryPoint().getFirst();
     assertEquals("BinaryExp[left=VarExp[name=x], operator=+, right=IntLiteralExp[value=1]]", stmt.exp().toString());
   }
 
@@ -764,7 +764,7 @@ public class ParserTest {
   public void testVarDecCustomType() throws ParseException {
     String code = "MyType val;";
     Program program = parse(code);
-    VarDecStmt stmt = (VarDecStmt) program.entryPoint().get(0);
+    VarDecStmt stmt = (VarDecStmt) program.entryPoint().getFirst();
     assertEquals("MyType", stmt.type());
     assertEquals("val", stmt.name());
   }
@@ -777,9 +777,9 @@ public class ParserTest {
           }
         """;
     Program program = parse("class A { init() {} } " + code);
-    WhileStmt whileStmt = (WhileStmt) program.entryPoint().get(0);
+    WhileStmt whileStmt = (WhileStmt) program.entryPoint().getFirst();
     BlockStmt body = (BlockStmt) whileStmt.body();
-    assertTrue(body.statements().get(0) instanceof BreakStmt);
+    assertInstanceOf(BreakStmt.class, body.statements().getFirst());
   }
 
   @Test
@@ -791,7 +791,7 @@ public class ParserTest {
           }
         """;
     Program program = parse("class A { init() {} } " + code);
-    BlockStmt stmt = (BlockStmt) program.entryPoint().get(0);
+    BlockStmt stmt = (BlockStmt) program.entryPoint().getFirst();
     assertEquals(2, stmt.statements().size());
   }
 
@@ -804,8 +804,8 @@ public class ParserTest {
         """;
     Program program = parse("class A { init() {} } " + code);
 
-    assertTrue(program.entryPoint().get(0) instanceof IfStmt);
-    IfStmt stmt = (IfStmt) program.entryPoint().get(0);
+    assertInstanceOf(IfStmt.class, program.entryPoint().getFirst());
+    IfStmt stmt = (IfStmt) program.entryPoint().getFirst();
 
     assertEquals("BinaryExp[left=VarExp[name=x], operator===, right=IntLiteralExp[value=1]]",
         stmt.condition().toString());
@@ -820,8 +820,8 @@ public class ParserTest {
         """;
     Program program = parse("class A { init() {} } " + code);
 
-    assertTrue(program.entryPoint().get(0) instanceof WhileStmt);
-    WhileStmt stmt = (WhileStmt) program.entryPoint().get(0);
+    assertInstanceOf(WhileStmt.class, program.entryPoint().getFirst());
+    WhileStmt stmt = (WhileStmt) program.entryPoint().getFirst();
 
     assertEquals("BinaryExp[left=VarExp[name=a], operator=<, right=VarExp[name=b]]",
         stmt.condition().toString());
@@ -839,7 +839,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    ReturnStmt stmt = (ReturnStmt) program.classes().get(0).constructor().body().get(0);
+    ReturnStmt stmt = (ReturnStmt) program.classes().getFirst().constructor().body().getFirst();
 
     assertTrue(stmt.expression().isPresent());
     assertEquals("BinaryExp[left=VarExp[name=x], operator=>=, right=IntLiteralExp[value=10]]",
@@ -858,7 +858,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    ReturnStmt stmt = (ReturnStmt) program.classes().get(0).constructor().body().get(0);
+    ReturnStmt stmt = (ReturnStmt) program.classes().getFirst().constructor().body().getFirst();
     assertTrue(stmt.expression().isPresent());
     assertEquals("BinaryExp[left=VarExp[name=x], operator=!=, right=VarExp[name=y]]",
         stmt.expression().get().toString());
@@ -878,7 +878,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    IfStmt stmt = (IfStmt) program.classes().get(0).constructor().body().get(0);
+    IfStmt stmt = (IfStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("BinaryExp[left=VarExp[name=a], operator=<, right=VarExp[name=b]]", stmt.condition().toString());
   }
 
@@ -896,7 +896,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    WhileStmt stmt = (WhileStmt) program.classes().get(0).constructor().body().get(0);
+    WhileStmt stmt = (WhileStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("BinaryExp[left=VarExp[name=x], operator=<=, right=IntLiteralExp[value=10]]",
         stmt.condition().toString());
   }
@@ -913,7 +913,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    AssignStmt stmt = (AssignStmt) program.classes().get(0).constructor().body().get(0);
+    AssignStmt stmt = (AssignStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("result", stmt.variableName());
     assertEquals("BinaryExp[left=VarExp[name=a], operator=>, right=VarExp[name=b]]", stmt.expression().toString());
   }
@@ -930,7 +930,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    ExprStmt stmt = (ExprStmt) program.classes().get(0).constructor().body().get(0);
+    ExprStmt stmt = (ExprStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("PrintlnExp[exp=BinaryExp[left=VarExp[name=x], operator===, right=IntLiteralExp[value=1]]]",
         stmt.exp().toString());
   }
@@ -947,7 +947,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    BreakStmt stmt = (BreakStmt) program.classes().get(0).constructor().body().get(0);
+    BreakStmt stmt = (BreakStmt) program.classes().getFirst().constructor().body().getFirst();
     assertNotNull(stmt);
   }
 
@@ -963,7 +963,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    VarDecStmt stmt = (VarDecStmt) program.classes().get(0).constructor().body().get(0);
+    VarDecStmt stmt = (VarDecStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("CustomType", stmt.type());
     assertEquals("val", stmt.name());
   }
@@ -980,7 +980,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    ConstructorDef constructor = program.classes().get(0).constructor();
+    ConstructorDef constructor = program.classes().getFirst().constructor();
     assertTrue(constructor.superArgs().isPresent());
 
     List<Exp> args = constructor.superArgs().get();
@@ -999,7 +999,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    AssignStmt stmt = (AssignStmt) program.classes().get(0).constructor().body().get(0);
+    AssignStmt stmt = (AssignStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals("x", stmt.variableName());
   }
 
@@ -1018,7 +1018,7 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    BlockStmt block = (BlockStmt) program.classes().get(0).constructor().body().get(0);
+    BlockStmt block = (BlockStmt) program.classes().getFirst().constructor().body().getFirst();
     assertEquals(2, block.statements().size());
   }
 
@@ -1034,8 +1034,8 @@ public class ParserTest {
         """;
     Program program = parse(code);
 
-    assertTrue(program.classes().get(0).constructor().superArgs().isPresent());
-    assertTrue(program.classes().get(0).constructor().superArgs().get().isEmpty());
+    assertTrue(program.classes().getFirst().constructor().superArgs().isPresent());
+    assertTrue(program.classes().getFirst().constructor().superArgs().get().isEmpty());
   }
 
   @Test
