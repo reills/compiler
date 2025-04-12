@@ -40,7 +40,7 @@ public class Tokenizer {
 
   private void advance() {
     if (currentChar() == '\n') {
-      System.out.println("found a newline");
+      //System.out.println("found a newline");
       line++;
       column = 1;  // Reset column on newline
     } else {

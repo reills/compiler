@@ -397,7 +397,7 @@ public class ParserTest {
   public void testChainedBinaryExpression() throws ParseException {
     String code = "1 + 2 * 3 - 4 / 2;";
     Program program = parse(code);
-    System.out.println(program);
+    //System.out.println(program);
     assertNotNull(program);
   }
 
