@@ -267,6 +267,22 @@ public class TokenizerTest {
   }
 
   @Test
+  public void testIntegerDeclaration() {
+    Tokenizer tokenizer = new Tokenizer("intVar = 1");
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(AssignToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(IntegerLiteralToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  @Test
+  public void testObjectDotMethod() {
+    Tokenizer tokenizer = new Tokenizer("obj.comp");
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(DotToken.class, tokenizer.nextToken().orElseThrow());
+    assertInstanceOf(IdentifierToken.class, tokenizer.nextToken().orElseThrow());
+  }
+
+  @Test
   public void testLineAndColumnTracking() {
     try {
       Path path = Path.of(getClass().getClassLoader().getResource("test_input.txt").toURI());

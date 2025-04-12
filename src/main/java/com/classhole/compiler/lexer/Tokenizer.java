@@ -40,6 +40,7 @@ public class Tokenizer {
 
   private void advance() {
     if (currentChar() == '\n') {
+      //System.out.println("found a newline");
       line++;
       column = 1;  // Reset column on newline
     } else {
@@ -165,8 +166,14 @@ public class Tokenizer {
       while (position < input.length() && Character.isDigit(input.charAt(position))) {
         advance();
       }
-      int lexeme = Integer.parseInt(input.substring(start, position));
-      return Optional.of(new IntegerLiteralToken(lexeme, startLine, startColumn));
+
+      String lexeme = input.substring(start, position);
+      try {
+        int value = Integer.parseInt(lexeme);  // actually parse it since integer overflow
+        return Optional.of(new IntegerLiteralToken(value, startLine, startColumn));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Integer literal too large at line " + startLine + ", column " + startColumn + ": " + lexeme);
+      }
     }
 
     // 3.2 Booleans
