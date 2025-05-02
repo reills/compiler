@@ -69,11 +69,17 @@ public class ClassTable {
     return classes.get(name);
   }
 
-  public boolean hasClass(String name) {
-    return classes.containsKey(name);
+  public MethodDef getMethod(String className, String methodName) {
+    ClassInfo current = classes.get(className);
+    while (current != null) {
+      if (current.methods.containsKey(methodName)) {
+        return current.methods.get(methodName);
+      }
+      if (current.superClassName.isEmpty()) break;
+      current = classes.get(current.superClassName.get());
+    }
+    return null;
   }
 
-  public Map<String, ClassInfo> allClasses() {
-    return classes;
-  }
+
 }
