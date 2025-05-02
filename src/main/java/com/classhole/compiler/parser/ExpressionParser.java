@@ -67,8 +67,11 @@ public class ExpressionParser {
 
   //call_exp ::= primary_exp (`.` methodname `(` comma_exp `)`)*
   public static ParseResult<Exp> callExp(Parser parser, int startPos) throws ParseException {
-    ParseResult<Exp> base = primaryExp(parser, startPos);
-    int pos = base.nextPos();
+    ParseResult<Exp> receiverResult = primaryExp(parser, startPos);
+    Exp receiver = receiverResult.result();
+    int pos = receiverResult.nextPos();
+
+    List<CallMethodExp.CallLink> chain = new ArrayList<>();
 
     while (parser.readToken(pos) instanceof DotToken) {
       pos++;  // consume '.'
@@ -79,24 +82,29 @@ public class ExpressionParser {
       }
       pos++;
 
-      Token lParen = parser.readToken(pos++);
-      if (!(lParen instanceof LeftParenToken)) {
-        throw new ParseException("Expected '(' after method name", pos - 1);
+      if (!(parser.readToken(pos) instanceof LeftParenToken)) {
+        throw new ParseException("Expected '(' after method name", pos);
       }
+      pos++; // consume '('
 
       ParseResult<List<Exp>> argsResult = parseCommaExp(parser, pos);
       pos = argsResult.nextPos();
 
-      Token rParen = parser.readToken(pos++);
-      if (!(rParen instanceof RightParenToken)) {
-        throw new ParseException("Expected ')' after arguments", pos - 1);
+      if (!(parser.readToken(pos) instanceof RightParenToken)) {
+        throw new ParseException("Expected ')' after arguments", pos);
       }
+      pos++; // consume ')'
 
-      base = new ParseResult<>(new CallMethodExp(base.result(), methodName.name(), argsResult.result()), pos);
+      chain.add(new CallMethodExp.CallLink(methodName.name(), argsResult.result()));
     }
 
-    return base;
+    if (chain.isEmpty()) {
+      return new ParseResult<>(receiver, pos);
+    } else {
+      return new ParseResult<>(new CallMethodExp(receiver, chain), pos);
+    }
   }
+
 
   /*
   primary_exp ::=
@@ -133,7 +141,7 @@ public class ExpressionParser {
       ParseResult<Exp> inner = exp(parser, afterLParen);
       parser.setPos(inner.nextPos());
 
-      //  Expect and consume )
+      //  Expect and consume
       ParseUtility.expect(parser, RightParenToken.class, "Expected ')' after expression");
 
       return new ParseResult<>(new PrintlnExp(inner.result()), parser.getPos());
