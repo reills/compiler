@@ -27,7 +27,13 @@ public class CodeGenerator {
     String parent = cls.superClass().orElse(null);
 
     sb.append("function ").append(className).append("() {\n");
-    sb.append(stmtGen.generateConstructor(cls.constructor(), className, cls.fields()));
+    sb.append(stmtGen.generateConstructor(
+        cls.constructor(),
+        className,
+        cls.superClass().orElse("Object"),  // Default to Object if no superclass
+        cls.fields()
+    ));
+
 
     sb.append("}\n");
 

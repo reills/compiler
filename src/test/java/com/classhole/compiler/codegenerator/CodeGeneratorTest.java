@@ -146,7 +146,7 @@ public class CodeGeneratorTest {
     assertTrue(js.contains("function A("));
     assertTrue(js.contains("this.x = x;")); // assigned from constructor param
     assertTrue(js.contains("this.b = false;"));
-    assertTrue(js.contains("B.call(this, 123);"));// super call
+    assertTrue(js.contains("A.call(this, 123);"));// super call
     assertTrue(js.contains("B.prototype = Object.create(A.prototype);"));
     assertTrue(js.contains("a = new B()"));
     assertTrue(js.contains("a.get()"));

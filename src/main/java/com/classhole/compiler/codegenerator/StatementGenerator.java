@@ -43,8 +43,15 @@ public class StatementGenerator {
   private String generateAssign(AssignStmt stmt) {
     String target = stmt.variableName();
     String value = expressionGenerator.generateExp(stmt.expression());
+
+    // naive heuristic: add this. unless RHS already uses `this.` (or is local var/param)
+    if (!target.startsWith("this.")) {
+      target = "this." + target;
+    }
+
     return target + " = " + value + ";";
   }
+
 
   private String generateIf(IfStmt stmt) {
     String cond = expressionGenerator.generateExp(stmt.condition());
@@ -95,8 +102,9 @@ public class StatementGenerator {
   }
 
 
-  public String generateConstructor(ConstructorDef constructor, String className, List<VarDecStmt> fields) {
-    StringBuilder sb = new StringBuilder();
+  public String generateConstructor(ConstructorDef constructor, String className, String parentClass, List<VarDecStmt> fields)
+  {
+  StringBuilder sb = new StringBuilder();
 
     for (VarDecStmt field : fields) {
       boolean isInConstructorParams = constructor.parameters().stream()
@@ -112,10 +120,11 @@ public class StatementGenerator {
       String args = constructor.superArgs().get().stream()
           .map(expressionGenerator::generateExp)
           .collect(Collectors.joining(", "));
-      sb.append("  ").append(className).append(".call(this")
+      sb.append("  ").append(parentClass).append(".call(this")
           .append(args.isEmpty() ? "" : ", " + args)
           .append(");\n");
     }
+
 
     for (Stmt stmt : constructor.body()) {
       sb.append("  ").append(generateStmt(stmt)).append("\n");
