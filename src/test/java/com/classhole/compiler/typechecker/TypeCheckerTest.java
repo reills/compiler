@@ -496,24 +496,29 @@ public void testDuplicateClassThrows() {
   Program program = new Program(List.of(a1, a2), List.of());
   assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
 }
-/////////////////////////////////////////
+///////////////////////////////////////// 
 @Test
 public void testNestedBlockScopes() {
   VarDecStmt outer = new VarDecStmt("Int", "x");
-  VarDecStmt inner = new VarDecStmt("String", "x"); // shadowed
+  VarDecStmt inner = new VarDecStmt("String", "x");
 
   Stmt block = new BlockStmt(List.of(
       outer,
+      new AssignStmt("x", new IntLiteralExp(1)),
+
       new BlockStmt(List.of(
           inner,
-          new PrintStmt(new PrintlnExp(new VarExp("x"))) // should refer to String
+          new AssignStmt("x", new StringLiteralExp("hello")),
+          new PrintStmt(new PrintlnExp(new VarExp("x")))
       )),
-      new PrintStmt(new PrintlnExp(new VarExp("x"))) // should refer to Int
+
+      new PrintStmt(new PrintlnExp(new VarExp("x")))
   ));
 
   Program program = new Program(List.of(), List.of(block));
   assertDoesNotThrow(() -> new TypeChecker().check(program));
 }
+
 ////////////////////////
 @Test
 public void testUseOfUninitializedVarThrows() {

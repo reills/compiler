@@ -26,8 +26,7 @@ public class TypeChecker {
     // Phase 1: Build class table and subtype graph
     for (ClassDef classDef : program.classes()) {
       classTable.addClass(classDef);
-      classDef.superClass().ifPresent(superName ->
-          subtyping.addSubtype(classDef.className(), superName));
+      classDef.superClass().ifPresent(superName -> subtyping.addSubtype(classDef.className(), superName));
     }
 
     // Phase 2: Type check entry-point statements
@@ -103,7 +102,8 @@ public class TypeChecker {
     }
 
     for (ClassDef classDef : program.classes()) {
-      if (classDef.superClass().isEmpty()) continue;
+      if (classDef.superClass().isEmpty())
+        continue;
 
       String subclassName = classDef.className();
       String superClassName = classDef.superClass().get();
@@ -112,7 +112,8 @@ public class TypeChecker {
       Map<String, MethodDef> superMethods = superClass.methods;
 
       for (MethodDef method : classDef.methods()) {
-        if (!superMethods.containsKey(method.name())) continue;
+        if (!superMethods.containsKey(method.name()))
+          continue;
 
         MethodDef superMethod = superMethods.get(method.name());
 
@@ -148,7 +149,6 @@ public class TypeChecker {
 
   }
 
-
   private Type resolveType(String typeName) {
     return switch (typeName) {
       case "Int" -> PrimitiveType.INT;
@@ -180,7 +180,8 @@ public class TypeChecker {
       case ReturnStmt ignored -> true;
       case BlockStmt block -> mustReturn(block.statements());
       case IfStmt ifStmt -> {
-        if (ifStmt.elseStmt().isEmpty()) yield false;
+        if (ifStmt.elseStmt().isEmpty())
+          yield false;
         yield mustReturn(ifStmt.thenStmt()) && mustReturn(ifStmt.elseStmt().get());
       }
       case WhileStmt ignored -> false; // can't guarantee it runs
@@ -192,15 +193,22 @@ public class TypeChecker {
     switch (stmt) {
       case VarDecStmt varDec -> env.declare(varDec.name(), resolveType(varDec.type()));
       case AssignStmt assign -> {
-        // Placeholder: assume everything is fine
         String varName = assign.variableName();
         TypeEnvironment.VarInfo info = env.lookup(varName);
         if (info == null) {
           throw new RuntimeException("Undeclared variable: " + varName);
         }
+
+        Type expected = info.type();
+        Type actual = checkExp(assign.expression(), env);
+
+        if (!subtyping.isSubtype(actual.getName(), expected.getName())) {
+          throw new RuntimeException("Cannot assign " + actual + " to variable '" + varName + "' of type " + expected);
+        }
+
         env.initialize(varName);
-        checkExp(assign.expression(), env); // Type check the expression anyway
       }
+
       case BlockStmt block -> {
         TypeEnvironment child = new TypeEnvironment(env);
         for (Stmt s : block.statements()) {
@@ -222,12 +230,11 @@ public class TypeChecker {
         } else {
           // return without expression
           if (!declaredReturnType.equals(PrimitiveType.VOID)) {
-            throw new RuntimeException("Method " + currentMethod + " must return a value of type " + declaredReturnType);
+            throw new RuntimeException(
+                "Method " + currentMethod + " must return a value of type " + declaredReturnType);
           }
         }
       }
-
-
 
       case IfStmt ifStmt -> {
         checkExp(ifStmt.condition(), env);
@@ -239,8 +246,8 @@ public class TypeChecker {
         checkStmt(whileStmt.body(), env);
       }
       case null, default ->
-          throw new RuntimeException("Unhandled statement type: " +
-              (stmt == null ? "null" : stmt.getClass()));
+        throw new RuntimeException("Unhandled statement type: " +
+            (stmt == null ? "null" : stmt.getClass()));
     }
   }
 
@@ -309,8 +316,8 @@ public class TypeChecker {
         String op = binary.operator();
 
         // Arithmetic ops: +, -, *, /
-        final boolean isNotLeftAndRightIntType =
-            !leftType.equals(PrimitiveType.INT) || !rightType.equals(PrimitiveType.INT);
+        final boolean isNotLeftAndRightIntType = !leftType.equals(PrimitiveType.INT)
+            || !rightType.equals(PrimitiveType.INT);
         switch (op) {
           case "+", "-", "*", "/" -> {
             if (isNotLeftAndRightIntType) {
