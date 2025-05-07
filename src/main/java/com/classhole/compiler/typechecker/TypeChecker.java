@@ -261,12 +261,18 @@ public class TypeChecker {
       }
 
       case IfStmt ifStmt -> {
-        checkExp(ifStmt.condition(), env);
+        Type condType = checkExp(ifStmt.condition(), env);
+        if (condType.equals(PrimitiveType.BOOLEAN)){
+          throw new RuntimeException("Condition must be of type boolean, but is type: " + condType.getName());
+        };
         checkStmt(ifStmt.thenStmt(), env);
         ifStmt.elseStmt().ifPresent(e -> checkStmt(e, env));
       }
       case WhileStmt whileStmt -> {
-        checkExp(whileStmt.condition(), env);
+        Type condType = checkExp(whileStmt.condition(), env);
+        if (condType.equals(PrimitiveType.BOOLEAN)){
+          throw new RuntimeException("Condition must be of type boolean, but is type: " + condType.getName());
+        }
         checkStmt(whileStmt.body(), env);
       }
       case null, default ->
