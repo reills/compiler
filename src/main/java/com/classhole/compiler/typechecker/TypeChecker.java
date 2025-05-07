@@ -11,8 +11,11 @@ import com.classhole.compiler.parser.ast.nodes.statements.*;
 import com.classhole.compiler.typechecker.types.PrimitiveType;
 import com.classhole.compiler.typechecker.types.BuiltInType;
 import com.classhole.compiler.typechecker.types.ClassType;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TypeChecker {
   private final ClassTable classTable = new ClassTable();
@@ -27,6 +30,13 @@ public class TypeChecker {
     for (ClassDef classDef : program.classes()) {
       classTable.addClass(classDef);
       classDef.superClass().ifPresent(superName -> subtyping.addSubtype(classDef.className(), superName));
+    }
+
+    // Then check for cycles
+    for (ClassDef classDef : program.classes()) {
+      if (classDef.superClass().isPresent()) {
+        detectCycles(classDef.className(), new HashSet<>());
+      }
     }
 
     // Phase 2: Type check entry-point statements
@@ -147,6 +157,20 @@ public class TypeChecker {
       }
     }
 
+  }
+
+  private void detectCycles(String className, Set<String> visited) {
+    if (visited.contains(className)) {
+      throw new RuntimeException("Cyclic inheritance detected involving class: " + className);
+    }
+
+    visited.add(className);
+
+    ClassTable.ClassInfo info = classTable.getClass(className);
+      info.superClassName.ifPresent(s -> detectCycles(s, visited));
+
+    // Remove from visited set when backtracking
+    visited.remove(className);
   }
 
   private Type resolveType(String typeName) {
