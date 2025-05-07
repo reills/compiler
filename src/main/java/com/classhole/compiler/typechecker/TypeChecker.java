@@ -11,6 +11,7 @@ import com.classhole.compiler.parser.ast.nodes.statements.*;
 import com.classhole.compiler.typechecker.types.PrimitiveType;
 import com.classhole.compiler.typechecker.types.BuiltInType;
 import com.classhole.compiler.typechecker.types.ClassType;
+import com.classhole.compiler.typechecker.InitState;
 
 import java.util.HashSet;
 import java.util.List;
@@ -41,8 +42,9 @@ public class TypeChecker {
 
     // Phase 2: Type check entry-point statements
     TypeEnvironment globalEnv = new TypeEnvironment();
+    InitState globalInitState = new InitState();
     for (Stmt stmt : program.entryPoint()) {
-      checkStmt(stmt, globalEnv);
+      checkStmt(stmt, globalEnv, globalInitState);
     }
 
     // Phase 2: Type check class methods
@@ -53,6 +55,7 @@ public class TypeChecker {
         currentReturnType = method.returnType();
 
         TypeEnvironment methodEnv = new TypeEnvironment();
+        InitState methodInitState = new InitState();
 
         // Add 'this' to env
         methodEnv.declare("this", new ClassType(currentClass));
@@ -63,10 +66,11 @@ public class TypeChecker {
           Type paramType = resolveType(param.type());
           methodEnv.declare(param.name(), paramType);
           methodEnv.initialize(param.name());
+          methodInitState.initialize(param.name());
         }
 
         for (Stmt stmt : method.body()) {
-          checkStmt(stmt, methodEnv);
+          checkStmt(stmt, methodEnv, methodInitState);
         }
 
         // check non-void methods have a return on all paths
