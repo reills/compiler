@@ -364,168 +364,374 @@ public class TypeCheckerTest {
     Program program = new Program(List.of(base, sub), List.of(var, assign));
     assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
   }
-//////////////////////////////////////////
+  //////////////////////////////////////////
 
-@Test
-public void testValidMethodOverride() {
-  MethodDef superMethod = new MethodDef(
-      "foo",
-      List.of(new VarDecStmt("Int", "x")),
-      "Int",
-      List.of(new ReturnStmt(Optional.of(new VarExp("x"))))
-  );
-  MethodDef subMethod = new MethodDef(
-      "foo",
-      List.of(new VarDecStmt("Int", "x")),
-      "Int",
-      List.of(new ReturnStmt(Optional.of(new VarExp("x"))))
-  );
+  @Test
+  public void testValidMethodOverride() {
+    MethodDef superMethod = new MethodDef(
+        "foo",
+        List.of(new VarDecStmt("Int", "x")),
+        "Int",
+        List.of(new ReturnStmt(Optional.of(new VarExp("x")))));
+    MethodDef subMethod = new MethodDef(
+        "foo",
+        List.of(new VarDecStmt("Int", "x")),
+        "Int",
+        List.of(new ReturnStmt(Optional.of(new VarExp("x")))));
 
-  ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
 
-  ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
-  ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
+    ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
+    ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
 
-  Program program = new Program(List.of(base, child), List.of());
-  assertDoesNotThrow(() -> new TypeChecker().check(program));
-}
+    Program program = new Program(List.of(base, child), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
 
-@Test
-public void testOverrideWithWrongReturnTypeThrows() {
-  MethodDef superMethod = new MethodDef(
-      "foo",
-      List.of(),
-      "Int",
-      List.of(new ReturnStmt(Optional.of(new IntLiteralExp(1))))
-  );
-  MethodDef subMethod = new MethodDef(
-      "foo",
-      List.of(),
-      "String", // invalid return override
-      List.of(new ReturnStmt(Optional.of(new StringLiteralExp("bad"))))
-  );
+  @Test
+  public void testOverrideWithWrongReturnTypeThrows() {
+    MethodDef superMethod = new MethodDef(
+        "foo",
+        List.of(),
+        "Int",
+        List.of(new ReturnStmt(Optional.of(new IntLiteralExp(1)))));
+    MethodDef subMethod = new MethodDef(
+        "foo",
+        List.of(),
+        "String", // invalid return override
+        List.of(new ReturnStmt(Optional.of(new StringLiteralExp("bad")))));
 
-  ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
 
-  ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
-  ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
+    ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
+    ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
 
-  Program program = new Program(List.of(base, child), List.of());
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
+    Program program = new Program(List.of(base, child), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
 
-@Test
-public void testOverrideWithMismatchedParamsThrows() {
-  MethodDef superMethod = new MethodDef(
-      "foo",
-      List.of(new VarDecStmt("Int", "x")),
-      "Void",
-      List.of()
-  );
-  MethodDef subMethod = new MethodDef(
-      "foo",
-      List.of(new VarDecStmt("String", "x")), // mismatched param type
-      "Void",
-      List.of()
-  );
+  @Test
+  public void testOverrideWithMismatchedParamsThrows() {
+    MethodDef superMethod = new MethodDef(
+        "foo",
+        List.of(new VarDecStmt("Int", "x")),
+        "Void",
+        List.of());
+    MethodDef subMethod = new MethodDef(
+        "foo",
+        List.of(new VarDecStmt("String", "x")), // mismatched param type
+        "Void",
+        List.of());
 
-  ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
 
-  ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
-  ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
+    ClassDef base = new ClassDef("Base", Optional.empty(), List.of(), ctor, List.of(superMethod));
+    ClassDef child = new ClassDef("Child", Optional.of("Base"), List.of(), ctor, List.of(subMethod));
 
-  Program program = new Program(List.of(base, child), List.of());
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
-////////////////////////////
-@Test
-public void testChainedMethodCallWithSubtypes() {
-  MethodDef getDog = new MethodDef(
-      "getDog",
-      List.of(),
-      "Dog",
-      List.of(new ReturnStmt(Optional.of(new NewObjectExp("Dog", List.of()))))
-  );
-  MethodDef speak = new MethodDef(
-      "speak",
-      List.of(),
-      "Void",
-      List.of()
-  );
+    Program program = new Program(List.of(base, child), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
 
-  ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+  ////////////////////////////
+  @Test
+  public void testChainedMethodCallWithSubtypes() {
+    MethodDef getDog = new MethodDef(
+        "getDog",
+        List.of(),
+        "Dog",
+        List.of(new ReturnStmt(Optional.of(new NewObjectExp("Dog", List.of())))));
+    MethodDef speak = new MethodDef(
+        "speak",
+        List.of(),
+        "Void",
+        List.of());
 
-  ClassDef animal = new ClassDef("Animal", Optional.empty(), List.of(), ctor, List.of(speak));
-  ClassDef dog = new ClassDef("Dog", Optional.of("Animal"), List.of(), ctor, List.of());
-  ClassDef main = new ClassDef("Main", Optional.empty(), List.of(), ctor, List.of(getDog));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
 
-  Exp chainCall = new CallMethodExp(
-      new CallMethodExp(new NewObjectExp("Main", List.of()), "getDog", List.of()),
-      "speak",
-      List.of()
-  );
+    ClassDef animal = new ClassDef("Animal", Optional.empty(), List.of(), ctor, List.of(speak));
+    ClassDef dog = new ClassDef("Dog", Optional.of("Animal"), List.of(), ctor, List.of());
+    ClassDef main = new ClassDef("Main", Optional.empty(), List.of(), ctor, List.of(getDog));
 
-  Program program = new Program(List.of(animal, dog, main), List.of(new PrintStmt(new PrintlnExp(chainCall))));
-  assertDoesNotThrow(() -> new TypeChecker().check(program));
-}
-//////////////////////////
-@Test
-public void testDuplicateFieldThrows() {
-  VarDecStmt field = new VarDecStmt("Int", "x");
-  ClassDef klass = new ClassDef("C", Optional.empty(), List.of(field, field),
-      new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
-  Program program = new Program(List.of(klass), List.of());
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
+    Exp chainCall = new CallMethodExp(
+        new CallMethodExp(new NewObjectExp("Main", List.of()), "getDog", List.of()),
+        "speak",
+        List.of());
 
-@Test
-public void testDuplicateMethodThrows() {
-  MethodDef method = new MethodDef("m", List.of(), "Void", List.of());
-  ClassDef klass = new ClassDef("C", Optional.empty(), List.of(),
-      new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of(method, method));
-  Program program = new Program(List.of(klass), List.of());
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
+    Program program = new Program(List.of(animal, dog, main), List.of(new PrintStmt(new PrintlnExp(chainCall))));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
 
-@Test
-public void testDuplicateClassThrows() {
-  ClassDef a1 = new ClassDef("A", Optional.empty(), List.of(),
-      new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
-  ClassDef a2 = new ClassDef("A", Optional.empty(), List.of(),
-      new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
-  Program program = new Program(List.of(a1, a2), List.of());
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
-///////////////////////////////////////// 
-@Test
-public void testNestedBlockScopes() {
-  VarDecStmt outer = new VarDecStmt("Int", "x");
-  VarDecStmt inner = new VarDecStmt("String", "x");
+  //////////////////////////
+  @Test
+  public void testDuplicateFieldThrows() {
+    VarDecStmt field = new VarDecStmt("Int", "x");
+    ClassDef klass = new ClassDef("C", Optional.empty(), List.of(field, field),
+        new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
+    Program program = new Program(List.of(klass), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
 
-  Stmt block = new BlockStmt(List.of(
-      outer,
-      new AssignStmt("x", new IntLiteralExp(1)),
+  @Test
+  public void testDuplicateMethodThrows() {
+    MethodDef method = new MethodDef("m", List.of(), "Void", List.of());
+    ClassDef klass = new ClassDef("C", Optional.empty(), List.of(),
+        new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of(method, method));
+    Program program = new Program(List.of(klass), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
 
-      new BlockStmt(List.of(
-          inner,
-          new AssignStmt("x", new StringLiteralExp("hello")),
-          new PrintStmt(new PrintlnExp(new VarExp("x")))
-      )),
+  @Test
+  public void testDuplicateClassThrows() {
+    ClassDef a1 = new ClassDef("A", Optional.empty(), List.of(),
+        new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
+    ClassDef a2 = new ClassDef("A", Optional.empty(), List.of(),
+        new ConstructorDef(List.of(), Optional.empty(), List.of()), List.of());
+    Program program = new Program(List.of(a1, a2), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
 
-      new PrintStmt(new PrintlnExp(new VarExp("x")))
-  ));
+  /////////////////////////////////////////
+  @Test
+  public void testNestedBlockScopes() {
+    VarDecStmt outer = new VarDecStmt("Int", "x");
+    VarDecStmt inner = new VarDecStmt("String", "x");
 
-  Program program = new Program(List.of(), List.of(block));
-  assertDoesNotThrow(() -> new TypeChecker().check(program));
-}
+    Stmt block = new BlockStmt(List.of(
+        outer,
+        new AssignStmt("x", new IntLiteralExp(1)),
 
-////////////////////////
-@Test
-public void testUseOfUninitializedVarThrows() {
-  VarDecStmt decl = new VarDecStmt("Int", "x");
-  PrintStmt use = new PrintStmt(new PrintlnExp(new VarExp("x")));
-  Program program = new Program(List.of(), List.of(decl, use));
-  assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
-}
+        new BlockStmt(List.of(
+            inner,
+            new AssignStmt("x", new StringLiteralExp("hello")),
+            new PrintStmt(new PrintlnExp(new VarExp("x"))))),
+
+        new PrintStmt(new PrintlnExp(new VarExp("x")))));
+
+    Program program = new Program(List.of(), List.of(block));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ////////////////////////
+  @Test
+  public void testUseOfUninitializedVarThrows() {
+    VarDecStmt decl = new VarDecStmt("Int", "x");
+    PrintStmt use = new PrintStmt(new PrintlnExp(new VarExp("x")));
+    Program program = new Program(List.of(), List.of(decl, use));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  //////////////////////////////////////
+  @Test
+  public void testArithmeticWithLiterals() {
+    Exp exp = new BinaryExp(new IntLiteralExp(5), "*", new IntLiteralExp(3));
+    Program program = new Program(List.of(), List.of(new PrintStmt(new PrintlnExp(exp))));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  //////////////////////////////////////////
+  @Test
+  public void testInvalidArithmeticThrows() {
+    Exp exp = new BinaryExp(new IntLiteralExp(5), "+", new StringLiteralExp("oops"));
+    Program program = new Program(List.of(), List.of(new PrintStmt(new PrintlnExp(exp))));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  /////////////////////////
+  @Test
+  public void testBooleanWhileCondition() {
+    Stmt loop = new WhileStmt(new BooleanLiteralExp(true), new BlockStmt(List.of()));
+    Program program = new Program(List.of(), List.of(loop));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  //////////////////////////
+  @Test
+  public void testVoidMethodReturnWithoutExpression() {
+    MethodDef method = new MethodDef("doSomething", List.of(), "Void", List.of(new ReturnStmt(Optional.empty())));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("MyClass", Optional.empty(), List.of(), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ///////////////////////
+  @Test
+  public void testMissingReturnValueThrows() {
+    MethodDef method = new MethodDef("get", List.of(), "Int", List.of(new ReturnStmt(Optional.empty())));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("C", Optional.empty(), List.of(), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  //////////////////////////////////
+  @Test
+  public void testBlockWithLocalDeclaration() {
+    VarDecStmt dec = new VarDecStmt("Int", "x");
+    AssignStmt init = new AssignStmt("x", new IntLiteralExp(10));
+    PrintStmt print = new PrintStmt(new PrintlnExp(new VarExp("x")));
+    BlockStmt block = new BlockStmt(List.of(dec, init, print));
+    Program program = new Program(List.of(), List.of(block));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  /////////////////////////////////
+  @Test
+  public void testVariableScopeLeakThrows() {
+    BlockStmt block = new BlockStmt(List.of(new VarDecStmt("Int", "x")));
+    PrintStmt use = new PrintStmt(new PrintlnExp(new VarExp("x")));
+    Program program = new Program(List.of(), List.of(block, use));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  /////////////////////////////////
+  @Test
+  public void testNestedControlFlowWithReturn() {
+    MethodDef method = new MethodDef(
+        "complex",
+        List.of(),
+        "Int",
+        List.of(
+            new IfStmt(new BooleanLiteralExp(true),
+                new ReturnStmt(Optional.of(new IntLiteralExp(1))),
+                Optional.of(new ReturnStmt(Optional.of(new IntLiteralExp(2)))))));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("Deep", Optional.empty(), List.of(), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ////////////////////////////////
+  @Test
+  public void testStringDeclareAndInitialize() {
+    VarDecStmt decl = new VarDecStmt("String", "s");
+    AssignStmt assign = new AssignStmt("s", new StringLiteralExp("hello"));
+    PrintStmt use = new PrintStmt(new PrintlnExp(new VarExp("s")));
+    Program program = new Program(List.of(), List.of(decl, assign, use));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  //////////////////////
+  @Test
+  public void testUseStringBeforeInitializationThrows() {
+    VarDecStmt decl = new VarDecStmt("String", "s");
+    PrintStmt use = new PrintStmt(new PrintlnExp(new VarExp("s")));
+    Program program = new Program(List.of(), List.of(decl, use));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  ////////////////////////////////////
+  @Test
+  public void testRedeclareVariableThrows() {
+    VarDecStmt a = new VarDecStmt("Int", "x");
+    VarDecStmt b = new VarDecStmt("String", "x"); // same name
+    Program program = new Program(List.of(), List.of(a, b));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  ///////////////////////////////
+  @Test
+  public void testShadowVariableInNestedScopeAllowed() {
+    BlockStmt innerBlock = new BlockStmt(List.of(
+        new VarDecStmt("String", "x"),
+        new AssignStmt("x", new StringLiteralExp("yes")),
+        new PrintStmt(new PrintlnExp(new VarExp("x")))));
+    BlockStmt outer = new BlockStmt(List.of(
+        new VarDecStmt("Int", "x"),
+        new AssignStmt("x", new IntLiteralExp(3)),
+        innerBlock,
+        new PrintStmt(new PrintlnExp(new VarExp("x")))));
+    Program program = new Program(List.of(), List.of(outer));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  //////////////////////////////////
+  @Test
+  public void testUseOuterVariableInInnerBlock() {
+    BlockStmt block = new BlockStmt(List.of(
+        new VarDecStmt("String", "msg"),
+        new AssignStmt("msg", new StringLiteralExp("hi")),
+        new BlockStmt(List.of(
+            new PrintStmt(new PrintlnExp(new VarExp("msg")))))));
+    Program program = new Program(List.of(), List.of(block));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ////////////////////////////////
+  @Test
+  public void testInitializeUndeclaredVariableThrows() {
+    AssignStmt assign = new AssignStmt("s", new StringLiteralExp("oops"));
+    Program program = new Program(List.of(), List.of(assign));
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  ////////////////////////////
+  @Test
+  public void testMethodParameterIsInitialized() {
+    MethodDef method = new MethodDef(
+        "echo",
+        List.of(new VarDecStmt("String", "msg")),
+        "Void",
+        List.of(new PrintStmt(new PrintlnExp(new VarExp("msg")))));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("Greeter", Optional.empty(), List.of(), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ///////////////////////////
+  @Test
+  public void testUndeclaredFieldAccessThrows() {
+    MethodDef method = new MethodDef(
+        "oops",
+        List.of(),
+        "Void",
+        List.of(new PrintStmt(new PrintlnExp(new VarExp("notAField")))));
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("Broken", Optional.empty(), List.of(), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
+  }
+
+  /////////////////////////////
+  @Test
+  public void testClassFieldUseViaThis() {
+    VarDecStmt field = new VarDecStmt("Int", "count");
+    MethodDef method = new MethodDef(
+        "show",
+        List.of(),
+        "Void",
+        List.of(new ExprStmt(new VarExp("this"))) // access this
+    );
+    ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
+    ClassDef klass = new ClassDef("Counter", Optional.empty(), List.of(field), ctor, List.of(method));
+    Program program = new Program(List.of(klass), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ///////////////////////////////
+  @Test
+  public void testConstructorParameterInitialization() {
+    ConstructorDef ctor = new ConstructorDef(
+        List.of(new VarDecStmt("String", "name")),
+        Optional.empty(),
+        List.of(new PrintStmt(new PrintlnExp(new VarExp("name")))));
+    ClassDef klass = new ClassDef("Person", Optional.empty(), List.of(), ctor, List.of());
+    Program program = new Program(List.of(klass), List.of());
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
+
+  ///////////////////////////////
+  @Test
+  public void testConstructorArgMatching() {
+    ConstructorDef ctor = new ConstructorDef(
+        List.of(new VarDecStmt("String", "label")),
+        Optional.empty(),
+        List.of());
+    ClassDef klass = new ClassDef("Label", Optional.empty(), List.of(), ctor, List.of());
+    Exp goodNew = new NewObjectExp("Label", List.of(new StringLiteralExp("ok")));
+    Program program = new Program(List.of(klass), List.of(new PrintStmt(new PrintlnExp(goodNew))));
+    assertDoesNotThrow(() -> new TypeChecker().check(program));
+  }
 
 }
