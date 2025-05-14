@@ -100,25 +100,37 @@ public class TypeCheckerTest {
         "get",
         List.of(),
         "Int",
-        List.of(new ReturnStmt(Optional.of(new IntLiteralExp(42)))));
+        List.of(new ReturnStmt(Optional.of(new IntLiteralExp(42))))
+    );
+
     ConstructorDef constructor = new ConstructorDef(
         List.of(),
         Optional.empty(),
-        List.of());
+        List.of()
+    );
+
     ClassDef klass = new ClassDef(
         "A",
         Optional.empty(),
         List.of(),
         constructor,
-        List.of(method));
+        List.of(method)
+    );
 
+    // Fixed construction of CallMethodExp
     Exp call = new CallMethodExp(
         new NewObjectExp("A", List.of()),
-        "get",
-        List.of());
-    Program program = new Program(List.of(klass), List.of(new PrintStmt(new PrintlnExp(call))));
+        List.of(new CallMethodExp.CallLink("get", List.of()))
+    );
+
+    Program program = new Program(
+        List.of(klass),
+        List.of(new PrintStmt(new PrintlnExp(call)))
+    );
+
     assertDoesNotThrow(() -> new TypeChecker().check(program));
   }
+
 
   @Test
   public void testMethodCallWrongArgCountThrows() {
@@ -126,26 +138,37 @@ public class TypeCheckerTest {
         "set",
         List.of(new VarDecStmt("Int", "x")),
         "Void",
-        List.of());
+        List.of()
+    );
+
     ConstructorDef constructor = new ConstructorDef(
         List.of(),
         Optional.empty(),
-        List.of());
+        List.of()
+    );
+
     ClassDef klass = new ClassDef(
         "A",
         Optional.empty(),
         List.of(),
         constructor,
-        List.of(method));
+        List.of(method)
+    );
 
+    // Fixed: Correct constructor usage with CallLink
     Exp call = new CallMethodExp(
         new NewObjectExp("A", List.of()),
-        "set",
-        List.of() // Missing argument
+        List.of(new CallMethodExp.CallLink("set", List.of())) // ❌ Missing "x" argument
     );
-    Program program = new Program(List.of(klass), List.of(new PrintStmt(new PrintlnExp(call))));
+
+    Program program = new Program(
+        List.of(klass),
+        List.of(new PrintStmt(new PrintlnExp(call)))
+    );
+
     assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
   }
+
 
   @Test
   public void testMethodCallWrongArgTypeThrows() {
@@ -153,26 +176,40 @@ public class TypeCheckerTest {
         "set",
         List.of(new VarDecStmt("Int", "x")),
         "Void",
-        List.of());
+        List.of()
+    );
+
     ConstructorDef constructor = new ConstructorDef(
         List.of(),
         Optional.empty(),
-        List.of());
+        List.of()
+    );
+
     ClassDef klass = new ClassDef(
         "A",
         Optional.empty(),
         List.of(),
         constructor,
-        List.of(method));
+        List.of(method)
+    );
 
+    // Fixed: use CallLink properly
     Exp call = new CallMethodExp(
         new NewObjectExp("A", List.of()),
-        "set",
-        List.of(new StringLiteralExp("wrongType")) // Incorrect type
+        List.of(new CallMethodExp.CallLink(
+            "set",
+            List.of(new StringLiteralExp("wrongType"))
+        ))
     );
-    Program program = new Program(List.of(klass), List.of(new PrintStmt(new PrintlnExp(call))));
+
+    Program program = new Program(
+        List.of(klass),
+        List.of(new PrintStmt(new PrintlnExp(call)))
+    );
+
     assertThrows(RuntimeException.class, () -> new TypeChecker().check(program));
   }
+
 
   /////////////////////////////////////////
   @Test
@@ -439,12 +476,15 @@ public class TypeCheckerTest {
         "getDog",
         List.of(),
         "Dog",
-        List.of(new ReturnStmt(Optional.of(new NewObjectExp("Dog", List.of())))));
+        List.of(new ReturnStmt(Optional.of(new NewObjectExp("Dog", List.of()))))
+    );
+
     MethodDef speak = new MethodDef(
         "speak",
         List.of(),
         "Void",
-        List.of());
+        List.of()
+    );
 
     ConstructorDef ctor = new ConstructorDef(List.of(), Optional.empty(), List.of());
 
@@ -452,14 +492,23 @@ public class TypeCheckerTest {
     ClassDef dog = new ClassDef("Dog", Optional.of("Animal"), List.of(), ctor, List.of());
     ClassDef main = new ClassDef("Main", Optional.empty(), List.of(), ctor, List.of(getDog));
 
+    // Fixed: use one CallMethodExp with two chained CallLinks
     Exp chainCall = new CallMethodExp(
-        new CallMethodExp(new NewObjectExp("Main", List.of()), "getDog", List.of()),
-        "speak",
-        List.of());
+        new NewObjectExp("Main", List.of()),
+        List.of(
+            new CallMethodExp.CallLink("getDog", List.of()),
+            new CallMethodExp.CallLink("speak", List.of())
+        )
+    );
 
-    Program program = new Program(List.of(animal, dog, main), List.of(new PrintStmt(new PrintlnExp(chainCall))));
+    Program program = new Program(
+        List.of(animal, dog, main),
+        List.of(new PrintStmt(new PrintlnExp(chainCall)))
+    );
+
     assertDoesNotThrow(() -> new TypeChecker().check(program));
   }
+
 
   //////////////////////////
   @Test
