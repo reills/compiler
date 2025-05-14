@@ -53,12 +53,12 @@ public class StatementParser {
       parser.setPos(cond.nextPos());
       ParseUtility.expect(parser, RightParenToken.class, "Expected ')' after if condition");
       ParseResult<Stmt> thenBranch = parseStmt(parser);
-      Stmt elseBranch = null;
+      Optional<Stmt> elseBranch = Optional.empty();
 
       if (parser.peek() instanceof ElseToken) {
         parser.setPos(parser.getPos() + 1);
         ParseResult<Stmt> elseStmt = parseStmt(parser);
-        elseBranch = elseStmt.result();
+        elseBranch = Optional.of(elseStmt.result());
         parser.setPos(elseStmt.nextPos());
       }
 

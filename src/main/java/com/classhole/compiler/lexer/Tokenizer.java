@@ -40,7 +40,6 @@ public class Tokenizer {
 
   private void advance() {
     if (currentChar() == '\n') {
-      //System.out.println("found a newline");
       line++;
       column = 1;  // Reset column on newline
     } else {
@@ -57,6 +56,7 @@ public class Tokenizer {
 
   public Optional<Token> nextToken() {
     skipWhitespace();
+
     if (position >= input.length()) {
       return Optional.empty();
     }
