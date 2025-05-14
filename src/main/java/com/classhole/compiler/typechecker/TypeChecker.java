@@ -307,37 +307,45 @@ public class TypeChecker {
       }
 
       case CallMethodExp call -> {
-        Type receiverType = checkExp(call.target(), env);
+        Type receiverType = checkExp(call.receiver(), env);
 
-        if (!(receiverType instanceof ClassType classType)) {
-          throw new RuntimeException("Cannot call method on non-class type: " + receiverType);
-        }
+        //  walk the chain step by step
+        for (CallMethodExp.CallLink link : call.chain()) {
 
-        MethodDef method = classTable.getMethod(classType.name(), call.methodName());
-        if (method == null) {
-          throw new RuntimeException("Method " + call.methodName() + " not found in class " + classType.name());
-        }
-
-        // Check argument types
-        List<Type> expectedParamTypes = method.parameters().stream()
-            .map(param -> resolveType(param.type()))
-            .toList();
-
-        if (expectedParamTypes.size() != call.args().size()) {
-          throw new RuntimeException("Argument count mismatch for method " + call.methodName());
-        }
-
-        for (int i = 0; i < expectedParamTypes.size(); i++) {
-          Type argType = checkExp(call.args().get(i), env);
-          Type expected = expectedParamTypes.get(i);
-          if (!subtyping.isSubtype(argType.getName(), expected.getName())) {
-            throw new RuntimeException("Argument " + i + " to method " + call.methodName() +
-                " has type " + argType + ", expected " + expected);
+          if (!(receiverType instanceof ClassType classType)) {
+            throw new RuntimeException("Cannot call method on non-class type: " + receiverType);
           }
+
+          MethodDef method = classTable.getMethod(classType.name(), link.methodName());
+          if (method == null) {
+            throw new RuntimeException("Method " + link.methodName() + " not found in class " + classType.name());
+          }
+
+          // Check argument types
+          List<Type> expectedParamTypes = method.parameters().stream()
+              .map(param -> resolveType(param.type()))
+              .toList();
+
+          if (expectedParamTypes.size() != link.args().size()) {
+            throw new RuntimeException("Argument count mismatch for method " + link.methodName());
+          }
+
+          for (int i = 0; i < expectedParamTypes.size(); i++) {
+            Type argType = checkExp(link.args().get(i), env);
+            Type expected = expectedParamTypes.get(i);
+            if (!subtyping.isSubtype(argType.getName(), expected.getName())) {
+              throw new RuntimeException("Argument " + i + " to method " + link.methodName() +
+                  " has type " + argType + ", expected " + expected);
+            }
+          }
+
+          // Update receiver type to the return type of the method, for the next link
+          receiverType = resolveType(method.returnType());
         }
 
-        yield resolveType(method.returnType());
+        yield receiverType;
       }
+
       case NewObjectExp newObj -> new ClassType(newObj.className());
 
       case BinaryExp binary -> {

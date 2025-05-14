@@ -434,8 +434,10 @@ public class ParserTest {
   @Test
   public void testMethodCallParsing() throws ParseException {
     assertExpressionSource("obj.add(1, 2);",
-        "CallMethodExp[target=VarExp[name=obj], methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]");
+        "CallMethodExp[receiver=VarExp[name=obj], chain=[CallLink[methodName=add, args=[IntLiteralExp[value=1], IntLiteralExp[value=2]]]]]"
+    );
   }
+
 
   @Test
   public void testComplexExpression() throws ParseException {
@@ -460,15 +462,10 @@ public class ParserTest {
   public void testChainedMethodCallsParsing() throws ParseException {
     assertExpressionSource(
         "obj.foo().bar();",
-        "CallMethodExp[" +
-            "target=CallMethodExp[" +
-            "target=VarExp[name=obj], " +
-            "methodName=foo, " +
-            "args=[]" +
-            "], " +
-            "methodName=bar, " +
-            "args=[]" +
-            "]");
+        "CallMethodExp[receiver=VarExp[name=obj], chain=[" +
+            "CallLink[methodName=foo, args=[]], " +
+            "CallLink[methodName=bar, args=[]]]]"
+    );
   }
 
   @Test
@@ -556,18 +553,18 @@ public class ParserTest {
             "]], " +
             "operator=*, " +
             "right=CallMethodExp[" +
-            "target=CallMethodExp[" +
-            "target=VarExp[name=obj], " +
-            "methodName=calc, " +
-            "args=[IntLiteralExp[value=3]]" +
-            "], " +
-            "methodName=getValue, " +
-            "args=[]" +
+            "receiver=VarExp[name=obj], " +
+            "chain=[" +
+            "CallLink[methodName=calc, args=[IntLiteralExp[value=3]]], " +
+            "CallLink[methodName=getValue, args=[]]" +
+            "]" +
             "]" +
             "]], " +
             "operator===, " +
             "right=IntLiteralExp[value=9]" +
-            "]");
+            "]"
+    );
+
   }
 
   @Test
