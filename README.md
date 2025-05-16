@@ -14,10 +14,10 @@
         - Compiles all source files in `src/main/java`.
     - `mvn test`
         - Runs all tests under `src/test/java`.
-    - mvn exec:java -Dexec.mainClass="com.classhole.compiler.Main"
+    - `mvn exec:java -Dexec.mainClass="com.classhole.compiler.Main"`
         - Edit the code string in Main.java to any valid classhole program and run this to compile and print the generated JavaScript
 
-- **Concrete Syntax**
+**Concrete Syntax**
 var is a variable
 classname is the name of a class
 methodname is the name of a method
